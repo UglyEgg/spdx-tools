@@ -1,0 +1,158 @@
+# Default shell for executing commands
+SHELL ?= /usr/bin/env bash
+
+# Project variables (override these in your Makefile)
+PROJECT_NAME ?= project
+SOURCE_DIR ?= src
+TEST_DIR ?= tests
+VENV_DIR ?= .venv
+PYTHON ?= python
+
+# Command helpers (override in your Makefile as needed)
+RUN ?= uvx
+RUN_DEV ?= $(RUN)
+PYTEST ?= pytest
+PYTEST_BASE_ARGS ?=
+PYTEST_VERBOSE_ARGS ?= -v
+PYTEST_COV_ARGS ?=
+TYPECHECK_TOOL ?= mypy
+TYPECHECK_PATHS ?= src
+PRE_COMMIT ?= python -m pre_commit
+PRE_COMMIT_INSTALL_ARGS ?= install
+PRE_COMMIT_RUN_ARGS ?= run --all-files
+
+LINT_PATHS ?= $(SOURCE_DIR) $(TEST_DIR)
+FORMAT_PATHS ?= $(SOURCE_DIR) $(TEST_DIR)
+
+RUFF ?= ruff
+RUFF_ARGS ?= check $(LINT_PATHS)
+BLACK ?= black
+BLACK_LINT_ARGS ?= --check $(FORMAT_PATHS)
+BLACK_FORMAT_ARGS ?= $(FORMAT_PATHS)
+ISORT ?= isort
+ISORT_LINT_ARGS ?= --check-only $(FORMAT_PATHS)
+ISORT_FORMAT_ARGS ?= $(FORMAT_PATHS)
+
+LINT_COMMANDS ?= \
+	$(RUN_DEV) $(RUFF) $(RUFF_ARGS) && \
+	$(RUN_DEV) $(BLACK) $(BLACK_LINT_ARGS) && \
+	$(RUN_DEV) $(ISORT) $(ISORT_LINT_ARGS)
+
+FORMAT_COMMANDS ?= \
+	$(RUN_DEV) $(BLACK) $(BLACK_FORMAT_ARGS) && \
+	$(RUN_DEV) $(ISORT) $(ISORT_FORMAT_ARGS)
+
+TEST_COMMAND ?= $(RUN) $(PYTEST) $(PYTEST_BASE_ARGS)
+TEST_VERBOSE_COMMAND ?= $(RUN) $(PYTEST) $(PYTEST_BASE_ARGS) $(PYTEST_VERBOSE_ARGS)
+TEST_COV_COMMAND ?= $(RUN) $(PYTEST) $(PYTEST_BASE_ARGS) $(PYTEST_COV_ARGS)
+TYPECHECK_COMMAND ?= $(RUN_DEV) $(TYPECHECK_TOOL) $(TYPECHECK_PATHS)
+PRE_COMMIT_INSTALL_COMMAND ?= $(RUN_DEV) $(PRE_COMMIT) $(PRE_COMMIT_INSTALL_ARGS)
+PRE_COMMIT_RUN_COMMAND ?= $(RUN_DEV) $(PRE_COMMIT) $(PRE_COMMIT_RUN_ARGS)
+
+CLEAN_BUILD_DIRS ?= build dist .eggs *.egg-info
+CLEAN_CACHE_DIRS ?= .pytest_cache .mypy_cache .tox htmlcov .coverage
+CLEAN_FIND_EXTS ?= pyc pyo
+CLEAN_ALL_EXTRA ?=
+
+# Helpers ------------------------------------------------------------------------------
+.PHONY: help install install-dev clean clean-build clean-venv clean-pyc clean-all \
+	lint format test test-verbose test-cov type-check pre-commit pre-commit-install \
+	check docs
+
+help: ## Display this help screen.
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Available targets:"
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'
+
+# Template Targets ---------------------------------------------------------------------
+
+ifndef TEMPLATE_SKIP_install
+install: ## Create a virtual environment and install the project.
+	uv venv $(VENV_DIR)
+	uv pip install -e .
+endif
+
+ifndef TEMPLATE_SKIP_install_dev
+install-dev: ## Create a venv and install project with development dependencies.
+	uv venv $(VENV_DIR)
+	uv pip install -e ".[dev]"
+endif
+
+ifndef TEMPLATE_SKIP_clean_build
+clean-build: ## Remove build artifacts.
+	rm -rf $(CLEAN_BUILD_DIRS)
+endif
+
+ifndef TEMPLATE_SKIP_clean_pyc
+clean-pyc: ## Remove Python bytecode and cache files.
+	@for ext in $(CLEAN_FIND_EXTS); do \
+		find . -type f -name "*.$$ext" -delete ; \
+	done
+	@find . -type d -name '__pycache__' -prune -exec rm -rf {} +
+endif
+
+ifndef TEMPLATE_SKIP_clean
+clean: clean-build clean-pyc ## Run all cleaning tasks except for the venv.
+	rm -rf $(CLEAN_CACHE_DIRS)
+	@echo "Project cleaned."
+endif
+
+ifndef TEMPLATE_SKIP_clean_venv
+clean-venv: ## Remove the virtual environment directory.
+	rm -rf $(VENV_DIR)
+endif
+
+ifndef TEMPLATE_SKIP_clean_all
+clean-all: clean ## Clean everything including the virtual environment.
+	rm -rf $(VENV_DIR) $(CLEAN_ALL_EXTRA)
+endif
+
+ifndef TEMPLATE_SKIP_lint
+lint: ## Run linting checks.
+	@$(LINT_COMMANDS)
+endif
+
+ifndef TEMPLATE_SKIP_format
+format: ## Format code.
+	@$(FORMAT_COMMANDS)
+endif
+
+ifndef TEMPLATE_SKIP_test
+test: ## Run the test suite with pytest.
+	$(TEST_COMMAND)
+endif
+
+ifndef TEMPLATE_SKIP_test_verbose
+test-verbose: ## Run tests with verbose output.
+	$(TEST_VERBOSE_COMMAND)
+endif
+
+ifndef TEMPLATE_SKIP_test_cov
+test-cov: ## Run tests with coverage reporting.
+	$(TEST_COV_COMMAND)
+endif
+
+ifndef TEMPLATE_SKIP_type_check
+type-check: ## Run static type checks.
+	$(TYPECHECK_COMMAND)
+endif
+
+ifndef TEMPLATE_SKIP_pre_commit_install
+pre-commit-install: ## Install pre-commit hooks.
+	$(PRE_COMMIT_INSTALL_COMMAND)
+endif
+
+ifndef TEMPLATE_SKIP_pre_commit
+pre-commit: ## Run pre-commit hooks on all files.
+	$(PRE_COMMIT_RUN_COMMAND)
+endif
+
+ifndef TEMPLATE_SKIP_check
+check: lint type-check test ## Run linting, type checking, and tests.
+endif
+
+ifndef TEMPLATE_SKIP_docs
+docs: ## Build project documentation (override in project if needed).
+	@echo "Documentation target is not implemented in the template."
+endif
