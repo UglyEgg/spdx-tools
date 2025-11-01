@@ -1,4 +1,4 @@
-.PHONY: help install install-dev sync clean clean-all test test-cov lint format type-check pre-commit build publish docs serve-docs update-spdx-data run-example
+.PHONY: help install install-dev sync clean clean-all test test-cov lint format type-check pre-commit build publish docs serve-docs update-spdx-data run-example bump-version
 
 # Default target
 help: ## Show this help message
@@ -51,16 +51,16 @@ test-verbose: ## Run tests with verbose output
 
 # Code quality
 lint: ## Run linting checks
-	uv run flake8 src tests
-	uv run black --check src tests
-	uv run isort --check-only src tests
+	uv run --extra dev flake8 src tests
+	uv run --extra dev black --check src tests
+	uv run --extra dev isort --check-only src tests
 
 format: ## Format code with black and isort
-	uv run black src tests
-	uv run isort src tests
+	uv run --extra dev black src tests
+	uv run --extra dev isort src tests
 
 type-check: ## Run type checking with mypy
-	uv run mypy src
+	uv run --extra dev mypy src
 
 # Pre-commit
 pre-commit-install: ## Install pre-commit hooks
@@ -68,6 +68,14 @@ pre-commit-install: ## Install pre-commit hooks
 
 pre-commit: ## Run pre-commit on all files
 	uv run --extra dev python -m pre_commit run --all-files
+
+bump-version: ## Bump the project version (usage: make bump-version part=patch|minor|major or version=X.Y.Z)
+	@if [ -n "$(version)" ]; then \
+		uv run --extra dev python scripts/bump_version.py --set $(version); \
+	else \
+		uv run --extra dev python scripts/bump_version.py --part $${part:-patch}; \
+	fi
+	@uv run --extra dev hatch version
 
 # Quality check combo
 check: lint type-check test ## Run all quality checks

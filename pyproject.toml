@@ -39,9 +39,12 @@ dev = [
   "black>=23.0.0",
   "isort>=5.12.0",
   "mypy>=1.0.0",
+  "flake8>=6.0.0",
+  "types-requests>=2.31.0.6",
   "pytest>=7.0.0",
   "pytest-cov>=4.0.0",
   "pre-commit>=4.3.0",
+  "hatch>=1.9.0",
   "build>=0.10.0",
   "twine>=4.0.0",
 ]
@@ -107,6 +110,14 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+
+[[tool.mypy.overrides]]
+module = ["tomli", "tomllib"]
+ignore_missing_imports = true
+
+[tool.flake8]
+max-line-length = 99
+extend-ignore = ["E203"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"

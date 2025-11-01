@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2025 Richard Majewski <uglyegg@entropy.quest>
 #
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# GNU Affero General Public License v3.0 or later
 
 """
 File operations for SPDX header management.
@@ -14,15 +16,121 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import textwrap
+import threading
 from pathlib import Path
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union
+from urllib.parse import quote_plus
 
-from .core import create_header, find_python_files, has_spdx_header, remove_spdx_header
+from .core import (
+    LICENSE_PATTERN,
+    create_header,
+    find_python_files,
+    has_spdx_header,
+    remove_spdx_header,
+)
 from .data import LicenseData, LicenseEntry
 
 PathLike = Union[str, Path]
-LICENSE_PATTERN = re.compile(r"SPDX-License-Identifier:\s*(?P<identifier>[^\s]+)")
 OpenEditorCallback = Callable[[Path], None]
+
+
+def _build_license_placeholder(license_key: str, license_name: str) -> str:
+    encoded_key = quote_plus(license_key)
+    return (
+        f"{license_name} ({license_key})\n"
+        "\n"
+        "The full license text is not bundled with this tool.\n"
+        "Refer to the official SPDX listing for the authoritative text:\n"
+        f"https://spdx.org/licenses/{encoded_key}.html\n"
+    )
+
+
+def _resolve_license_text(license_key: str, license_entry: LicenseEntry) -> str | None:
+    """Return the full license text from cached data or by downloading it."""
+    cached_text = license_entry.get("license_text")
+    if isinstance(cached_text, str) and cached_text.strip():
+        return cached_text
+
+    try:
+        import requests
+    except ImportError:
+        return None
+
+    text_url = (
+        "https://raw.githubusercontent.com/spdx/license-list-data/main/text/"
+        f"{quote_plus(license_key)}.txt"
+    )
+
+    try:
+        response = requests.get(text_url, timeout=30)
+        response.raise_for_status()
+    except requests.RequestException:
+        return None
+
+    return response.text
+
+
+_BULLET_PATTERN = re.compile(r"^(([-*•]|[0-9]+\.)\s+)")
+
+
+def _wrap_license_text(text: str, width: int = 79) -> str:
+    """Hard-wrap license text while preserving blank lines and indentation."""
+    has_trailing_newline = text.endswith("\n")
+
+    def flush_paragraph(buffer: list[str]) -> list[str]:
+        if not buffer:
+            return []
+
+        first_line = buffer[0]
+        indent_match = re.match(r"^\s*", first_line)
+        indent = indent_match.group(0) if indent_match else ""
+        stripped_lines = [line.strip() for line in buffer]
+        paragraph_text = " ".join(stripped_lines)
+
+        wrapper_kwargs: Dict[str, Any] = {
+            "width": width,
+            "break_long_words": False,
+            "break_on_hyphens": False,
+        }
+
+        first_after_indent = first_line[len(indent) :]
+        bullet_match = _BULLET_PATTERN.match(first_after_indent)
+
+        if bullet_match:
+            bullet_prefix = indent + bullet_match.group(1)
+            wrapper_kwargs.update(
+                initial_indent=bullet_prefix,
+                subsequent_indent=indent + " " * len(bullet_match.group(1)),
+            )
+            paragraph_text = paragraph_text[len(bullet_match.group(1)) :].lstrip()
+            if not paragraph_text:
+                return [bullet_prefix.rstrip()]
+        elif indent:
+            wrapper_kwargs.update(initial_indent=indent, subsequent_indent=indent)
+
+        wrapper = textwrap.TextWrapper(**wrapper_kwargs)
+        return wrapper.fill(paragraph_text).splitlines()
+
+    lines = text.replace("\r\n", "\n").split("\n")
+    wrapped_lines: list[str] = []
+    paragraph: list[str] = []
+
+    for line in lines:
+        if not line.strip():
+            wrapped_lines.extend(flush_paragraph(paragraph))
+            paragraph = []
+            wrapped_lines.append("")
+            continue
+
+        paragraph.append(line)
+
+    wrapped_lines.extend(flush_paragraph(paragraph))
+
+    result = "\n".join(wrapped_lines)
+    if has_trailing_newline and not result.endswith("\n"):
+        result += "\n"
+    return result
 
 
 def check_missing_headers(directory: PathLike, dry_run: bool = False) -> List[str]:
@@ -54,13 +162,13 @@ def _collect_license_identifiers(directory: PathLike) -> List[str]:
 
         try:
             with open(filepath, "r", encoding="utf-8") as file_handle:
-                snippet = file_handle.read(512)
+                for line in file_handle:
+                    match = LICENSE_PATTERN.search(line)
+                    if match:
+                        identifiers.append(match.group("identifier"))
+                        break
         except OSError:
             continue
-
-        match = LICENSE_PATTERN.search(snippet)
-        if match:
-            identifiers.append(match.group("identifier"))
     return identifiers
 
 
@@ -88,7 +196,8 @@ def auto_fix_headers(
 
     if len(unique_identifiers) > 1:
         print(
-            "✗ Multiple SPDX licenses detected. Specify a license explicitly with --add or --change."
+            "✗ Multiple SPDX licenses detected. "
+            "Specify a license explicitly with --add or --change."
         )
         return False
 
@@ -336,18 +445,40 @@ def extract_license(
     license_info = license_data["licenses"][license_key]
     license_name = license_info.get("name", license_key)
 
-    # Create a simple license file
-    license_text = f"SPDX-License-Identifier: {license_key}\n\n{license_name}\n"
+    license_text = _resolve_license_text(license_key, license_info)
+    used_placeholder = False
 
-    license_file_path = Path(repo_path) / f"LICENSE-{license_key}"
+    if not license_text:
+        used_placeholder = True
+        license_text = _build_license_placeholder(license_key, license_name)
+
+    target_path = Path(repo_path)
+    preferred_path = target_path / "LICENSE"
+    preferred_exists = preferred_path.exists()
+    license_file_path = (
+        preferred_path
+        if not preferred_exists
+        else target_path / f"LICENSE-{license_key}"
+    )
 
     if dry_run:
         print(f"Would extract license to: {license_file_path}")
+        if preferred_exists:
+            print("  (existing LICENSE detected; using suffixed filename)")
+        if used_placeholder:
+            print("  (placeholder text; unable to retrieve full license text)")
     else:
+        formatted_text = _wrap_license_text(license_text)
         try:
             with open(license_file_path, "w", encoding="utf-8") as file_handle:
-                file_handle.write(license_text)
+                file_handle.write(formatted_text)
             print(f"✓ Extracted license to: {license_file_path}")
+            if preferred_exists:
+                print("Info: Existing LICENSE preserved; wrote suffixed file instead.")
+            if used_placeholder:
+                print(
+                    "⚠ Full license text unavailable – placeholder file was generated."
+                )
         except OSError as exc:
             print(f"✗ Error extracting license to '{license_file_path}': {exc}")
 
@@ -387,6 +518,7 @@ def show_license(
     license_key: str,
     license_data: LicenseData,
     open_in_editor: OpenEditorCallback | None = None,
+    cleanup_delay: float | None = 30.0,
 ) -> None:
     """Display the selected license text using the system's default editor."""
     if license_key not in license_data["licenses"]:
@@ -396,7 +528,7 @@ def show_license(
     license_info = license_data["licenses"][license_key]
     license_name = license_info.get("name", license_key)
 
-    license_text = f"SPDX-License-Identifier: {license_key}\n\n{license_name}\n"
+    license_text = _build_license_placeholder(license_key, license_name)
 
     with tempfile.NamedTemporaryFile(
         "w", encoding="utf-8", suffix=f"-{license_key}.txt", delete=False
@@ -406,11 +538,20 @@ def show_license(
 
     opener = open_in_editor or _default_open_editor
 
+    timer: threading.Timer | None = None
     try:
         opener(temp_path)
+        if cleanup_delay is not None:
+            timer = threading.Timer(
+                cleanup_delay, temp_path.unlink, kwargs={"missing_ok": True}
+            )
+            timer.start()
     except OSError as exc:
         print(f"✗ Error opening license viewer: {exc}")
+        temp_path.unlink(missing_ok=True)
+        if timer is not None:
+            timer.cancel()
     else:
         print(f"✓ Displaying license '{license_key}' in the default editor.")
-    finally:
-        temp_path.unlink(missing_ok=True)
+        if cleanup_delay is None:
+            print(f"  Temporary file preserved at: {temp_path}")

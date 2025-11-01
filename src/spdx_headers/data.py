@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2025 Richard Majewski <uglyegg@entropy.quest>
 #
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# GNU Affero General Public License v3.0 or later
 
 """
 Data management for SPDX license information.
@@ -16,12 +18,16 @@ from typing import Any, Dict, Iterable, Mapping, Optional, TypedDict, Union, cas
 PathLike = Union[str, Path]
 
 
-class LicenseEntry(TypedDict):
+class _LicenseEntryRequired(TypedDict):
     name: str
     deprecated: bool
     osi_approved: bool
     fsf_libre: bool
     header_template: str
+
+
+class LicenseEntry(_LicenseEntryRequired, total=False):
+    license_text: str
 
 
 class LicenseMetadata(TypedDict):
@@ -102,19 +108,18 @@ def update_license_data(data_file_path: Optional[PathLike] = None) -> None:
             if not isinstance(license_id, str):
                 continue
 
-            license_data["licenses"][license_id] = {
+            entry: LicenseEntry = {
                 "name": str(license_info.get("name", "")),
                 "deprecated": bool(license_info.get("isDeprecatedLicenseId", False)),
                 "osi_approved": bool(license_info.get("isOsiApproved", False)),
                 "fsf_libre": bool(license_info.get("isFsfLibre", False)),
-                "header_template": (
-                    "# SPDX-FileCopyrightText: {year} {name} <{email}>\n"
-                    "#\n"
-                    f"# SPDX-License-Identifier: {license_id}\n"
-                    "#\n"
-                    "# {license_name}\n"
-                ),
+                "header_template": ("#\n" "#\n" "# {license_name}\n"),
             }
+            license_text = license_info.get("licenseText")
+            if isinstance(license_text, str) and license_text.strip():
+                entry["license_text"] = license_text
+
+            license_data["licenses"][license_id] = entry
 
         resolved_path.parent.mkdir(parents=True, exist_ok=True)
 

@@ -93,10 +93,11 @@ spdx-headers --add Apache-2.0 --extract
 
 ```bash
 spdx-headers --show MIT
+spdx-headers --show MIT --keep-temp
 ```
 
-- Writes a temporary license summary and opens it with the system default viewer (`open`, `xdg-open`, `start` etc.).
-- Automatically cleans up the temporary file afterwards.
+- Writes a temporary license summary and opens it with the system default viewer (`open`, `xdg-open`, `start`, etc.).
+- By default the temporary file is deleted after 30 seconds; override with `--keep-temp` to leave it on disk (the CLI prints the file path).
 
 ### Update License Data
 

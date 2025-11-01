@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2025 Richard Majewski <uglyegg@entropy.quest>
 #
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# GNU Affero General Public License v3.0 or later
 
 """
 SPDX Headers - A tool for managing SPDX headers in Python source files.

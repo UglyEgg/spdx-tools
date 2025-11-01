@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2025 Richard Majewski <uglyegg@entropy.quest>
 #
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# GNU Affero General Public License v3.0 or later
 
 """
 Command-line interface for SPDX header management.
@@ -25,7 +27,7 @@ from .operations import (
 )
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser(
         description="Manage SPDX headers in Python source files.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -90,8 +92,15 @@ Examples:
     parser.add_argument(
         "-e",
         "--extract",
-        action="store_true",
-        help="Extract the license file to the repository root. Can be combined with -a or -c.",
+        nargs="?",
+        const="",
+        default=None,
+        metavar="KEYWORD",
+        help=(
+            "Extract license text to the repository root. "
+            "Combine with -a/-c to write the chosen license, or supply KEYWORD to "
+            "select licenses by keyword."
+        ),
     )
 
     parser.add_argument(
@@ -114,6 +123,12 @@ Examples:
         "--fix",
         action="store_true",
         help="When combined with --check, attempt to add missing headers automatically.",
+    )
+
+    parser.add_argument(
+        "--keep-temp",
+        action="store_true",
+        help="When showing a license, keep the temporary file instead of deleting it.",
     )
 
     # Add repository path option
@@ -139,7 +154,7 @@ Examples:
     # Handle update request first
     if args.update:
         update_license_data(args.data_file)
-        return
+        return 0
 
     # Load the license data
     license_data = load_license_data(args.data_file)
@@ -156,6 +171,8 @@ Examples:
     if args.fix and not args.check:
         print("Error: The --fix option must be used together with --check.")
         sys.exit(2)
+
+    extract_arg = args.extract
 
     if args.list is not None:
         keyword_raw = args.list.strip() if args.list is not None else ""
@@ -188,26 +205,35 @@ Examples:
                 print(f"No licenses found matching keyword '{keyword}'.")
             else:
                 print("No licenses available.")
+        return 0
     elif args.add:
         add_header_to_py_files(
             src_dir, args.add, license_data, year, name, email, args.dry_run
         )
         # If extract is also specified, extract the license file
-        if args.extract:
-            extract_license(args.add, license_data, repo_path, args.dry_run)
+        if extract_arg is not None:
+            target_license = args.add if extract_arg == "" else extract_arg
+            extract_license(target_license, license_data, repo_path, args.dry_run)
+        return 0
     elif args.change:
         change_header_in_py_files(
             src_dir, args.change, license_data, year, name, email, args.dry_run
         )
         # If extract is also specified, extract the license file
-        if args.extract:
-            extract_license(args.change, license_data, repo_path, args.dry_run)
+        if extract_arg is not None:
+            target_license = args.change if extract_arg == "" else extract_arg
+            extract_license(target_license, license_data, repo_path, args.dry_run)
+        return 0
     elif args.show:
-        show_license(args.show, license_data)
+        cleanup_delay = None if args.keep_temp else 30.0
+        show_license(args.show, license_data, cleanup_delay=cleanup_delay)
+        return 0
     elif args.remove:
         remove_header_from_py_files(src_dir, args.dry_run)
+        return 0
     elif args.verify:
         verify_spdx_headers(src_dir)
+        return 0
     elif args.check:
         exit_code = check_headers(src_dir)
         if exit_code != 0 and args.fix:
@@ -216,14 +242,35 @@ Examples:
             )
             if success:
                 exit_code = check_headers(src_dir)
-        sys.exit(exit_code)
-    elif args.extract:
-        # If only extract is specified, show an error
-        print("Error: The --extract option must be used with either --add or --change.")
-        parser.print_help()
+        return exit_code
+    elif extract_arg is not None:
+        if extract_arg == "":
+            print(
+                "Error: Provide a license keyword when using --extract without --add or --change."
+            )
+            return 2
+
+        keyword = extract_arg.strip()
+        matching_licenses = filter_licenses(license_data, keyword)
+
+        if not matching_licenses:
+            print(f"No licenses found matching keyword '{keyword}'.")
+            return 1
+
+        extracted_count = 0
+        for license_key, _details in matching_licenses:
+            extract_license(license_key, license_data, repo_path, args.dry_run)
+            extracted_count += 1
+
+        if extracted_count > 1:
+            print(f"✓ Extracted {extracted_count} licenses matching '{keyword}'.")
+        else:
+            print(f"✓ Extracted license matching '{keyword}'.")
+        return 0
     else:
         parser.print_help()
+        return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

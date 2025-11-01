@@ -24,6 +24,7 @@
 - **License extraction** – generate LICENSE files by SPDX identifier.
 - **Dry-run support** – inspect changes before applying them.
 - **Typed codebase** – includes `py.typed` for first-class type checking.
+- **Flexible license viewing** – preview SPDX license summaries and optionally keep the generated files for reference.
 
 ## Installation
 
@@ -31,14 +32,22 @@
 pip install spdx-headers
 ```
 
-Alternatively, to work from source:
+### Working from Source (with uv)
+
+The development workflow relies on [uv](https://github.com/astral-sh/uv) for dependency management. Install it first:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# or: pipx install uv
+```
+
+Then clone the repository and install dependencies:
 
 ```bash
 git clone https://github.com/uglyegg/spdx-tools.git
 cd spdx-tools
-python -m venv .venv
-. .venv/bin/activate
-pip install -e .[dev]
+uv sync --dev
+uv run pre-commit install
 ```
 
 ## Quick Start
@@ -70,7 +79,7 @@ spdx-headers --extract --add MIT --dry-run
 | `spdx-headers --verify` | Print a report of files missing headers (no exit code). |
 | `spdx-headers --check [--fix]` | Return exit code 0/1 depending on compliance; `--fix` attempts auto-repair. |
 | `spdx-headers --list [KEYWORD]` | List available SPDX identifiers, optionally filtering by keyword. |
-| `spdx-headers --show LICENSE` | Display a license summary using the system’s default viewer. |
+| `spdx-headers --show LICENSE [--keep-temp]` | Display a license summary using the system’s default viewer (optionally keep the temp file). |
 | `spdx-headers --extract --add LICENSE` | Extract the license text into `LICENSE-<id>`. |
 | `spdx-headers --update` | Download the latest SPDX license data. |
 

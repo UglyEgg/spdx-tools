@@ -6,6 +6,29 @@ All notable changes to this project are documented in this file. The format foll
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+
+## [0.1.2] - 2025-10-30
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+## [0.1.1] - 2025-10-30
+
+### Added
 - `--fix` option for automatic SPDX header repair.
 - Auto-inference logic to determine a repository’s SPDX license from existing files.
 - CLI documentation (`docs/usage.md`) and pre-commit guide (`docs/pre-commit.md`).
@@ -28,5 +51,7 @@ All notable changes to this project are documented in this file. The format foll
 - SPDX license list download and extraction helpers.
 - Pre-commit hook for enforcing SPDX compliance.
 
-[unreleased]: https://github.com/uglyegg/spdx-tools/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/uglyegg/spdx-tools/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/uglyegg/spdx-tools/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/uglyegg/spdx-tools/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/uglyegg/spdx-tools/releases/tag/v0.1.0

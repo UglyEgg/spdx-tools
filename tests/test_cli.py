@@ -38,7 +38,8 @@ restore_cli_env = pytest.fixture(autouse=True)(_restore_cli_env)
 def test_cli_list_with_filter(capsys: pytest.CaptureFixture[str]) -> None:
     sys.argv = ["spdx-headers", "--list", "Apache-2.0"]
 
-    cli.main()
+    exit_code = cli.main()
+    assert exit_code == 0
     captured = capsys.readouterr()
     assert "Filter: Apache-2.0" in captured.out
     assert "Matched licenses:" in captured.out
@@ -49,7 +50,8 @@ def test_cli_list_with_filter(capsys: pytest.CaptureFixture[str]) -> None:
 def test_cli_list_no_matches(capsys: pytest.CaptureFixture[str]) -> None:
     sys.argv = ["spdx-headers", "--list", "nope-license"]
 
-    cli.main()
+    exit_code = cli.main()
+    assert exit_code == 0
     captured = capsys.readouterr()
     assert "No licenses found matching keyword 'nope-license'." in captured.out
 
@@ -63,13 +65,16 @@ def test_cli_show_invokes_operation(monkeypatch: pytest.MonkeyPatch) -> None:
     ) -> None:
         called["license_key"] = license_key
         called["license_data"] = license_data
+        called["cleanup_delay"] = kwargs.get("cleanup_delay")
 
     monkeypatch.setattr(cli, "show_license", fake_show)
 
-    cli.main()
+    exit_code = cli.main()
 
+    assert exit_code == 0
     assert called["license_key"] == "MIT"
     assert "licenses" in called["license_data"]
+    assert called["cleanup_delay"] == 30.0
 
 
 def test_cli_check_fix_adds_headers(
@@ -103,11 +108,79 @@ def test_cli_check_fix_adds_headers(
         str(project_root),
     ]
 
-    with pytest.raises(SystemExit) as excinfo:
-        cli.main()
+    exit_code = cli.main()
 
-    assert excinfo.value.code == 0
+    assert exit_code == 0
     captured = capsys.readouterr()
     assert "Successfully added missing SPDX headers" in captured.out
     content = missing_file.read_text(encoding="utf-8")
     assert "SPDX-License-Identifier: MIT" in content
+
+
+def test_cli_show_keep_temp(monkeypatch: pytest.MonkeyPatch) -> None:
+    sys.argv = ["spdx-headers", "--show", "MIT", "--keep-temp"]
+    called: Dict[str, Any] = {}
+
+    def fake_show(
+        license_key: str, license_data: Any, *args: Any, **kwargs: Any
+    ) -> None:
+        called["cleanup_delay"] = kwargs.get("cleanup_delay")
+
+    monkeypatch.setattr(cli, "show_license", fake_show)
+
+    exit_code = cli.main()
+
+    assert exit_code == 0
+    assert called["cleanup_delay"] is None
+
+
+def test_cli_extract_keyword_invokes_operation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sys.argv = [
+        "spdx-headers",
+        "--extract",
+        "MIT",
+        "--path",
+        str(tmp_path),
+    ]
+    captured_calls: list[tuple[str, Path, bool]] = []
+
+    monkeypatch.setattr(
+        cli,
+        "filter_licenses",
+        lambda _license_data, _keyword: [
+            ("MIT", {"name": "MIT License"}),
+            ("MIT-0", {"name": "MIT No Attribution"}),
+        ],
+    )
+
+    def fake_extract(
+        license_key: str,
+        license_data: Any,
+        repo_path: Path,
+        dry_run: bool,
+    ) -> None:
+        captured_calls.append((license_key, Path(repo_path), dry_run))
+
+    monkeypatch.setattr(cli, "extract_license", fake_extract)
+
+    exit_code = cli.main()
+
+    assert exit_code == 0
+    assert captured_calls == [
+        ("MIT", tmp_path, False),
+        ("MIT-0", tmp_path, False),
+    ]
+
+
+def test_cli_extract_requires_keyword_without_operations(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    sys.argv = ["spdx-headers", "--extract"]
+
+    exit_code = cli.main()
+
+    assert exit_code == 2
+    captured = capsys.readouterr()
+    assert "Provide a license keyword" in captured.out

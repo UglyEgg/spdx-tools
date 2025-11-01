@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-
 # SPDX-FileCopyrightText: 2025 Richard Majewski <uglyegg@entropy.quest>
 #
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# GNU Affero General Public License v3.0 or later
 
 """
 A command-line tool for managing SPDX headers in Python source files.
@@ -17,9 +18,11 @@ from __future__ import annotations
 import argparse
 import datetime
 import os
+import re
 import sys
 from pathlib import Path
 from typing import List, Tuple, Union
+from urllib.parse import quote_plus
 
 try:
     import tomllib
@@ -37,6 +40,10 @@ from .data import load_license_data as _load_license_data
 from .data import update_license_data as _update_license_data
 
 PathLike = Union[str, Path]
+
+LICENSE_PATTERN = re.compile(
+    r"SPDX-License-Identifier:\s*(?P<identifier>[\w\.\-+/:]+)", re.IGNORECASE
+)
 
 
 def load_license_data(data_file_path: PathLike | None = None) -> LicenseData:
@@ -102,15 +109,39 @@ def find_python_files(directory: PathLike) -> List[str]:
 
 
 def has_spdx_header(filepath: PathLike) -> bool:
-    """Check if a file has an SPDX header."""
+    """Return True if the file contains an SPDX license identifier near the top."""
     try:
         with open(filepath, "r", encoding="utf-8") as file_handle:
-            content = file_handle.read(512)  # Read first 512 chars
-        return (
-            "SPDX-FileCopyrightText" in content and "SPDX-License-Identifier" in content
-        )
+            content = file_handle.read(2048)
     except OSError:
         return False
+
+    return bool(LICENSE_PATTERN.search(content))
+
+
+def _extract_spdx_header_from_lines(lines: List[str]) -> List[str]:
+    header_candidates: List[str] = []
+    spdx_found = False
+
+    for index, line in enumerate(lines):
+        if index == 0 and line.startswith("#!"):
+            continue
+
+        stripped = line.strip()
+        if not stripped:
+            if header_candidates:
+                header_candidates.append(line)
+            continue
+
+        if stripped.startswith("#"):
+            header_candidates.append(line)
+            if "SPDX-" in stripped:
+                spdx_found = True
+            continue
+
+        break
+
+    return header_candidates if spdx_found else []
 
 
 def extract_spdx_header(filepath: PathLike) -> List[str]:
@@ -119,25 +150,7 @@ def extract_spdx_header(filepath: PathLike) -> List[str]:
         with open(filepath, "r", encoding="utf-8") as file_handle:
             lines = file_handle.readlines()
 
-        header_lines: List[str] = []
-        in_header = False
-
-        for line in lines:
-            if "SPDX-FileCopyrightText" in line or "SPDX-License-Identifier" in line:
-                in_header = True
-
-            if in_header:
-                header_lines.append(line)
-                # Stop after the license identifier and any following blank lines
-                if "SPDX-License-Identifier" in line:
-                    # Include any blank lines after the header
-                    continue
-                elif line.strip() == "" and header_lines:
-                    continue
-                elif line.strip() != "" and "SPDX-" not in line:
-                    break
-
-        return header_lines
+        return _extract_spdx_header_from_lines(lines)
     except OSError:
         return []
 
@@ -150,25 +163,26 @@ def remove_spdx_header(filepath: PathLike) -> Tuple[List[str], bool]:
 
         # Find the end of the SPDX header
         new_lines: List[str] = []
-        skip_until_content = False
-        found_header = False
+        header_lines = _extract_spdx_header_from_lines(lines)
+        if not header_lines:
+            return lines, False
 
-        for line in lines:
-            if "SPDX-FileCopyrightText" in line or "SPDX-License-Identifier" in line:
-                found_header = True
-                skip_until_content = True
-                continue
+        start_index = 0
+        if lines and lines[0].startswith("#!"):
+            start_index = 1
 
-            if skip_until_content:
-                if line.strip() == "" or line.startswith("#"):
-                    continue
-                else:
-                    skip_until_content = False
+        index = start_index
+        while index < len(lines) and not lines[index].strip():
+            index += 1
 
-            if not skip_until_content:
-                new_lines.append(line)
+        header_length = len(header_lines)
+        if lines[index : index + header_length] == header_lines:
+            prefix_end = 1 if (lines and lines[0].startswith("#!")) else 0
+            new_lines.extend(lines[:prefix_end])
+            new_lines.extend(lines[index + header_length :])
+            return new_lines, True
 
-        return new_lines, found_header
+        return lines, False
     except OSError:
         return [], False
 
@@ -245,13 +259,34 @@ def create_header(
         return None
 
     license_entry = license_data["licenses"][license_key]
-    template = license_entry["header_template"]
-    return template.format(
-        year=year,
-        name=name,
-        email=email,
-        license_name=license_entry.get("name", "").strip(),
-    )
+    context = {
+        "year": year,
+        "name": name,
+        "email": email,
+        "license_name": license_entry.get("name", "").strip(),
+        "license_key": license_key,
+    }
+
+    template = license_entry.get("header_template", "")
+    header: str
+    try:
+        header = template.format(**context)
+    except KeyError:
+        header = ""
+
+    if "SPDX-License-Identifier" not in header:
+        lines = [
+            f"# SPDX-FileCopyrightText: {context['year']} {context['name']} <{context['email']}>",
+            "#",
+            f"# SPDX-License-Identifier: {context['license_key']}",
+        ]
+        if context["license_name"]:
+            lines.extend(["#", f"# {context['license_name']}"])
+        header = "\n".join(lines) + "\n\n"
+    else:
+        header = header.rstrip("\n") + "\n\n"
+
+    return header
 
 
 def add_header_to_py_files(
@@ -423,11 +458,15 @@ def extract_license(
     license_info = license_data["licenses"][license_key]
     license_name = license_info.get("name", license_key)
 
-    # Create a simple license file
-    license_text = f"""SPDX-License-Identifier: {license_key}
-
-{license_name}
-"""
+    # Create a simple placeholder license file
+    encoded_key = quote_plus(license_key)
+    license_text = (
+        f"{license_name} ({license_key})\n"
+        "\n"
+        "The full license text is not bundled with this tool.\n"
+        "Refer to the official SPDX listing for the authoritative text:\n"
+        f"https://spdx.org/licenses/{encoded_key}.html\n"
+    )
 
     license_file_path = Path(repo_path) / f"LICENSE-{license_key}"
 

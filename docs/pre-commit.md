@@ -20,8 +20,8 @@ Add the following entry to your repository’s `.pre-commit-config.yaml`:
 
 ```yaml
 repos:
-  - repo: https://github.com/uglyegg/spdx-tools
-    rev: v0.1.0
+- repo: https://github.com/uglyegg/spdx-tools
+  rev: v0.1.0  # pin to a tagged release for reproducibility
     hooks:
       - id: spdx-header-check
 ```
