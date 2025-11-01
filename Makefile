@@ -1,3 +1,6 @@
+# Configure runtime paths
+export UV_CACHE_DIR := $(CURDIR)/.uv-cache
+
 # Configure template defaults for this project
 RUN := uv run
 RUN_DEV := uv run --extra dev

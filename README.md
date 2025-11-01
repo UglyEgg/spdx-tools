@@ -26,6 +26,7 @@
 - **Dry-run support** – inspect changes before applying them.
 - **Typed codebase** – includes `py.typed` for first-class type checking.
 - **Flexible license viewing** – preview SPDX license summaries and optionally keep the generated files for reference.
+- **Configurable exclusions** – opt specific files out of header checks via a `.spdx-headers.ini` file.
 
 ## Installation
 
@@ -83,6 +84,7 @@ spdx-headers --extract --add MIT --dry-run
 | `spdx-headers --show LICENSE [--keep-temp]` | Display a license summary using the system’s default viewer (optionally keep the temp file). |
 | `spdx-headers --extract [KEYWORD] [--add LICENSE]` | Extract license text for identifiers matching `KEYWORD`; combine with `--add`/`--change` to write headers and license text together. |
 | `spdx-headers --update` | Download the latest SPDX license data. |
+| `.spdx-headers.ini` | Optional configuration file used to exclude generated/vendor files from checks. |
 
 See [`docs/usage.md`](docs/usage.md) for a comprehensive walkthrough.
 
@@ -103,6 +105,7 @@ The bundled configuration automatically runs `spdx-headers --check --fix`, so fi
 
 - [`docs/usage.md`](docs/usage.md) – extended CLI usage guide, tips, and examples.
 - [`docs/pre-commit.md`](docs/pre-commit.md) – integrating the tool with `pre-commit`.
+- [`docs/configuration.md`](docs/configuration.md) – managing `.spdx-headers.ini` exclusions.
 - [`docs/github-actions.md`](docs/github-actions.md) – integrating the tool with GitHub Workflows.
 - [`docs/dev-workflow`](docs/dev-workflow.md) – workflow when working on development for this application.
 

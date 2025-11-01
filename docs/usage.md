@@ -115,6 +115,17 @@ spdx-headers --update
 - `--data-file FILE` – supply a custom SPDX license data file.
 - `--dry-run` – compatible with most commands; prints intended actions without writing changes.
 
+## Configuration File
+
+If you need to exclude generated files (for example `src/package/_version.py`) from header enforcement, add a `.spdx-headers.ini` file to the root of your repository (the same directory you pass via `--path`). Example:
+
+```ini
+[spdx-headers]
+exclude = _version.py docs/conf.py
+```
+
+The `exclude` entry accepts whitespace-separated filenames. These exclusions apply to all commands that traverse Python files (`--check`, `--add`, etc.). The default configuration already excludes `_version.py`, so you only need the file when opting out additional paths.
+
 ## Troubleshooting
 
 - **Missing SPDX headers keep failing:** run `spdx-headers --check --fix` first, then commit the changes.

@@ -87,6 +87,7 @@ extend-exclude = '''
   | \.venv
   | build
   | dist
+  | _version.py
 )/
 '''
 
@@ -148,3 +149,6 @@ exclude_lines = [
   "class .*\\bProtocol\\):",
   "@(abc\\.)?abstractmethod",
 ]
+
+[tool.spdx-headers]
+exclude = ["_version.py"]

@@ -73,6 +73,10 @@ git tag "v$(hatch version)"
 
 Consider running the full pipeline once more (`make check`). The publish script will refuse to run unless the release tag exists and points at `HEAD`, which helps prevent publishing mismatched artifacts.
 
+### Configuration hygiene
+
+If the project needs to ignore generated/vendor files, keep a `.spdx-headers.ini` alongside the code. During code review, verify that new exclusions are justified, because they remove files from header enforcement. See `docs/configuration.md` for details.
+
 ## 5. Publishing (Optional)
 
 If you intend to publish to PyPI:

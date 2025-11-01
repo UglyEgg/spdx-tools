@@ -13,12 +13,13 @@ for automated compliance checking.
 from __future__ import annotations
 
 import argparse
+import configparser
 import datetime
 import os
 import re
 import sys
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Iterable, List, Tuple, Union
 from urllib.parse import quote_plus
 
 try:
@@ -37,6 +38,24 @@ from .data import load_license_data as _load_license_data
 from .data import update_license_data as _update_license_data
 
 PathLike = Union[str, Path]
+
+EXCLUDED_FILENAMES = {"_version.py"}
+CONFIG_FILENAME = ".spdx-headers.ini"
+
+
+def _load_exclusions(directory: PathLike) -> set[str]:
+    config = configparser.ConfigParser()
+    config_path = Path(directory) / CONFIG_FILENAME
+
+    exclusions = set(EXCLUDED_FILENAMES)
+    if config_path.is_file():
+        config.read(config_path)
+        values: Iterable[str] = config.get(
+            "spdx-headers", "exclude", fallback=""
+        ).split()
+        exclusions.update(value.strip() for value in values if value.strip())
+    return exclusions
+
 
 LICENSE_PATTERN = re.compile(
     r"SPDX-License-Identifier:\s*(?P<identifier>[\w\.\-+/:]+)", re.IGNORECASE
@@ -98,10 +117,14 @@ def get_copyright_info(repo_path: PathLike) -> Tuple[str, str, str]:
 def find_python_files(directory: PathLike) -> List[str]:
     """Find all Python files in the directory."""
     python_files: List[str] = []
+    exclusions = _load_exclusions(directory)
     for root, _, files in os.walk(directory):
         for filename in files:
-            if filename.endswith(".py"):
-                python_files.append(os.path.join(root, filename))
+            if not filename.endswith(".py"):
+                continue
+            if filename in exclusions:
+                continue
+            python_files.append(os.path.join(root, filename))
     return python_files
 
 

@@ -172,6 +172,7 @@ cython_debug/
 # uv
 .uv/
 uv.lock
+.uv-cache/
 
 # Generated SPDX data
 src/spdx_tools/spdx_license_data.json
