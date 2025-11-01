@@ -39,7 +39,7 @@ spdx-headers --add MIT
 ### Change Headers
 
 ```bash
-spdx-headers --change GPL-3.0-only
+spdx-headers --change AGPL-3.0-or-later
 ```
 
 - Replaces existing SPDX headers with a new license identifier.

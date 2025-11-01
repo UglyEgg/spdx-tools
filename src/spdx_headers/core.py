@@ -481,7 +481,7 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s -a GPL-3.0-only -p /path/to/repo
+  %(prog)s -a AGPL-3.0-or-later -p /path/to/repo
   %(prog)s -c MIT -p /path/to/repo --dry-run
   %(prog)s -v -p /path/to/repo
   %(prog)s --check -p /path/to/repo

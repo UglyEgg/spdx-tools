@@ -115,8 +115,8 @@ tree: ## Show project structure
 	tree -I '__pycache__|*.pyc|*.pyo|.git|.pytest_cache|.mypy_cache|*.egg-info|build|dist|.venv|.uv'
 
 # Example workflows
-example-add-headers: ## Example: Add GPL-3.0-only headers
-	uv run spdx-headers --add GPL-3.0-only --dry-run
+example-add-headers: ## Example: Add AGPL-3.0-or-later headers
+	uv run spdx-headers --add AGPL-3.0-or-later --dry-run
 
 example-change-license: ## Example: Change to MIT license
 	uv run spdx-headers --change MIT --dry-run

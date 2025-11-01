@@ -19,7 +19,7 @@
 
 - **Automated SPDX management** – add, change, remove, or verify headers across your Python sources.
 - **Auto-fix missing headers** – infer the repository’s SPDX identifier and repair files automatically.
-- **SPDX license data updates** – fetches the latest license list directly from SPDX.AGPL-3.0-or-later
+- **SPDX license data updates** – fetches the latest license list directly from SPDX.
 - **Pre-commit integration** – ships with a hook that can block commits or auto-fix issues.
 - **License extraction** – generate LICENSE files by SPDX identifier.
 - **Dry-run support** – inspect changes before applying them.
