@@ -137,7 +137,7 @@ def check_missing_headers(directory: PathLike, dry_run: bool = False) -> List[st
     """
     if not os.path.isdir(directory):
         print(f"Error: The directory '{directory}' does not exist.")
-        return []
+        raise FileNotFoundError(directory)
 
     missing_headers: List[str] = []
     python_files = find_python_files(directory)
