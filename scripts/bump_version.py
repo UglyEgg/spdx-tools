@@ -23,6 +23,11 @@ import re
 from pathlib import Path
 from typing import List, Tuple
 
+HEADER_BLOCK = (
+    "# SPDX-FileCopyrightText: 2025 Richard Majewski <uglyegg@entropy.quest>\n"
+    "# SPDX-License-Identifier: AGPL-3.0-or-later\n\n"
+)
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CHANGELOG_PATH = REPO_ROOT / "CHANGELOG.md"
 VERSION_FILE = REPO_ROOT / "src" / "spdx_headers" / "_version.py"
@@ -138,6 +143,9 @@ def update_changelog(new_version: str) -> str:
 
 def update_version_file(new_version: str) -> None:
     content = VERSION_FILE.read_text(encoding="utf-8")
+    if HEADER_BLOCK not in content:
+        content = HEADER_BLOCK + content.lstrip()
+
     content = re.sub(
         r'(__version__\s*=\s*version\s*=\s*")[^"]+("\n)',
         rf"\1{new_version}\2",
