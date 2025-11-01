@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2025 Richard Majewski <uglyegg@entropy.quest>
-#
 # SPDX-License-Identifier: AGPL-3.0-or-later
-#
-# GNU Affero General Public License v3.0 or later
 
 """
 A command-line tool for managing SPDX headers in Python source files.
@@ -277,11 +274,8 @@ def create_header(
     if "SPDX-License-Identifier" not in header:
         lines = [
             f"# SPDX-FileCopyrightText: {context['year']} {context['name']} <{context['email']}>",
-            "#",
             f"# SPDX-License-Identifier: {context['license_key']}",
         ]
-        if context["license_name"]:
-            lines.extend(["#", f"# {context['license_name']}"])
         header = "\n".join(lines) + "\n\n"
     else:
         header = header.rstrip("\n") + "\n\n"

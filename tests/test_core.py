@@ -27,7 +27,7 @@ def test_has_spdx_header_detects_present_header(tmp_path: Path) -> None:
         email="test@example.com",
     )
     assert header is not None
-    assert "MIT License" in header
+    assert "# SPDX-License-Identifier: MIT" in header
     source_path = tmp_path / "module.py"
     source_path.write_text(f"{header}print('hello world')\n", encoding="utf-8")
 

@@ -51,7 +51,7 @@ test-verbose: ## Run tests with verbose output
 
 # Code quality
 lint: ## Run linting checks
-	uv run --extra dev flake8 src tests
+	uv run --extra dev ruff check src tests
 	uv run --extra dev black --check src tests
 	uv run --extra dev isort --check-only src tests
 
@@ -151,7 +151,7 @@ ci-test: ## Run tests in CI mode
 ci-check: ## Run all CI checks
 	uv run black --check src tests
 	uv run isort --check-only src tests
-	uv run flake8 src tests
+	uv run ruff check src tests
 	uv run mypy src
 	uv run pytest --cov=src --cov-report=xml
 
