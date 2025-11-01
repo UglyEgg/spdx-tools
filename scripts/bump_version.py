@@ -19,12 +19,13 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import sys
+import re
 from pathlib import Path
 from typing import List, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CHANGELOG_PATH = REPO_ROOT / "CHANGELOG.md"
+VERSION_FILE = REPO_ROOT / "src" / "spdx_headers" / "_version.py"
 
 
 def semver_bump(version: str, part: str) -> str:
@@ -95,7 +96,6 @@ def build_unreleased_template() -> List[str]:
         "\n",
         "### Fixed\n",
         "-\n",
-        "\n",
     ]
 
 
@@ -105,11 +105,8 @@ def update_changelog(new_version: str) -> str:
         lines[unreleased_idx + 1 : next_heading_idx]
     )
 
-    release_heading = [
-        f"## [{new_version}] - {dt.date.today():%Y-%m-%d}\n",
-        "\n",
-    ]
-    release_block = ["\n"] + release_heading + unreleased_section + ["\n"]
+    release_heading = [f"\n## [{new_version}] - {dt.date.today():%Y-%m-%d}\n", "\n"]
+    release_block = release_heading + unreleased_section + ["\n"]
 
     new_unreleased = build_unreleased_template()
 
@@ -139,6 +136,28 @@ def update_changelog(new_version: str) -> str:
     return previous_version
 
 
+def update_version_file(new_version: str) -> None:
+    content = VERSION_FILE.read_text(encoding="utf-8")
+    content = re.sub(
+        r'(__version__\s*=\s*version\s*=\s*")[^"]+("\n)',
+        rf"\1{new_version}\2",
+        content,
+    )
+    tuple_fragments = []
+    for fragment in new_version.split("."):
+        try:
+            tuple_fragments.append(str(int(fragment)))
+        except ValueError:
+            tuple_fragments.append(repr(fragment))
+    tuple_repr = ", ".join(tuple_fragments)
+    content = re.sub(
+        r"(__version_tuple__\s*=\s*version_tuple\s*=\s*\()[^\)]+(\))",
+        rf"\1{tuple_repr}\2",
+        content,
+    )
+    VERSION_FILE.write_text(content, encoding="utf-8")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Prepare a new project version.")
     group = parser.add_mutually_exclusive_group()
@@ -164,6 +183,7 @@ def main() -> None:
         new_version = semver_bump(current_version, part)
 
     prev = update_changelog(new_version)
+    update_version_file(new_version)
     print(f"Prepared release notes for {new_version} (previous: {prev}).")
     print("Next steps:")
     print(f"  git commit -am 'Release v{new_version}'")

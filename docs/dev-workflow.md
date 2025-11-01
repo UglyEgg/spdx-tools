@@ -58,29 +58,34 @@ make bump-version version=1.2.0
 ```
 
 The script:
-- Invokes `hatch version` to update package metadata.
-- Moves the “Unreleased” changelog entries into a dated release section.
-- Updates changelog comparison links.
+- Updates `CHANGELOG.md` (moving “Unreleased” notes into a dated section, refreshing comparison links).
+- Rewrites `src/spdx_headers/_version.py` with the new version (kept in sync with the changelog).
 
 After bumping:
 
 ```bash
+git status         # verify only intended files changed
 git commit -am "Release v$(hatch version)"
-git tag v$(hatch version)
+
+# Tag the release so the publish script can verify it
+git tag "v$(hatch version)"
 ```
 
-Consider running the full pipeline once more (`make check`).
+Consider running the full pipeline once more (`make check`). The publish script will refuse to run unless the release tag exists and points at `HEAD`, which helps prevent publishing mismatched artifacts.
 
 ## 5. Publishing (Optional)
 
 If you intend to publish to PyPI:
 
 ```bash
-make build
-uv publish   # or uv publish --repository testpypi
+# Optional dry-run against TestPyPI
+make publish-test
+
+# Publish to PyPI (runs full build + metadata checks)
+make publish
 ```
 
-Ensure credentials are configured (`~/.pypirc` or environment variables).
+The publish targets call `scripts/release.sh`, which refuses to proceed if the git tree is dirty, rebuilds packages, runs `twine check`, and then uploads with `twine`. Make sure your PyPI/TestPyPI credentials are configured (`~/.pypirc` or environment variables).
 
 ## 6. Pull Requests
 

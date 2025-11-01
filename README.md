@@ -102,6 +102,8 @@ The bundled configuration automatically runs `spdx-headers --check --fix`, so fi
 
 - [`docs/usage.md`](docs/usage.md) – extended CLI usage guide, tips, and examples.
 - [`docs/pre-commit.md`](docs/pre-commit.md) – integrating the tool with `pre-commit`.
+- [`docs/github-actions.md`](docs/github-actions.md) – integrating the tool with GitHub Workflows.
+- [`docs/dev-workflow`](docs/dev-workflow.md) – workflow when working on development for this application.
 
 ## Contributing
 

@@ -42,13 +42,13 @@ bump-version: ## Bump the project version (usage: make bump-version part=patch|m
 
 # Build and publish
 build: clean ## Build the package
-	uv build
+	./scripts/build.sh
 
-publish-test: build ## Publish to TestPyPI
-	uv publish --repository testpypi
+publish-test: ## Build and publish to TestPyPI
+	./scripts/release.sh --repository testpypi
 
-publish: build ## Publish to PyPI
-	uv publish
+publish: ## Build and publish to PyPI
+	./scripts/release.sh
 
 # Development utilities
 update-spdx-data: ## Update the SPDX license data

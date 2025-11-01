@@ -5,17 +5,21 @@ All notable changes to this project are documented in this file. The format foll
 ## [Unreleased]
 
 ### Added
+
 -
 
 ### Changed
+
 -
 
 ### Fixed
+
 -
 
 ## [1.0.0] - 2025-11-01
 
 ### Added
+
 - Initial release of the `spdx-headers` CLI for managing SPDX headers.
 - Commands to add, remove, change, verify, check, and extract SPDX headers.
 - SPDX license list download helpers and placeholder extraction support.
