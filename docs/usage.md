@@ -63,7 +63,7 @@ spdx-headers --check --fix
 ```
 
 - `--verify` prints a report but always returns exit code 0.
-- `--check` is CI-friendly: exit code 0 when compliant, 1 otherwise.
+- `--check` is CI-friendly: exit code 0 when compliant, 1 otherwise, and prints detected SPDX identifiers (including per-file details when multiple licenses are present).
 - `--check --fix` tries to add missing headers automatically:
   - Scans existing files for SPDX identifiers.
   - If a single license dominates, missing files inherit that identifier.
@@ -83,11 +83,13 @@ spdx-headers --list Apache
 ### Extract Licenses
 
 ```bash
+spdx-headers --extract Apache
 spdx-headers --add Apache-2.0 --extract
 ```
 
-- Adds SPDX headers and saves a minimal LICENSE summary in `LICENSE-Apache-2.0`.
-- Designed for repositories adopting SPDX standard license texts.
+- `--extract KEYWORD` writes license texts for every identifier matching the keyword, using `LICENSE` (or suffixed filenames when `LICENSE` already exists).
+- Combine `--extract` with `--add` or `--change` to update headers and persist the corresponding license text at the same time.
+- Output files are hard-wrapped to 79 characters to stay friendly to terminals and diffs.
 
 ### Show License
 

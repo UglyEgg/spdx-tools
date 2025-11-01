@@ -14,6 +14,7 @@ from spdx_headers.core import create_header
 from spdx_headers.data import LicenseData, LicenseEntry, load_license_data
 from spdx_headers.operations import (
     auto_fix_headers,
+    check_headers,
     extract_license,
     filter_licenses,
     show_license,
@@ -125,6 +126,65 @@ def test_auto_fix_headers_multiple_licenses(tmp_path: Path) -> None:
     assert success is False
     content = missing_file.read_text(encoding="utf-8")
     assert "SPDX-License-Identifier" not in content
+
+
+def test_check_headers_reports_detected_license(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    license_data = load_license_data()
+    header = create_header(
+        license_data,
+        "MIT",
+        year="2025",
+        name="Test User",
+        email="test@example.com",
+    )
+    assert header is not None
+
+    src_dir = tmp_path / "pkg"
+    src_dir.mkdir()
+    (src_dir / "module.py").write_text(f"{header}print('ok')\n", encoding="utf-8")
+
+    exit_code = check_headers(src_dir)
+
+    assert exit_code == 0
+    captured = capsys.readouterr()
+    assert "Detected SPDX license identifier: MIT" in captured.out
+
+
+def test_check_headers_lists_files_when_multiple_identifiers(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    license_data = load_license_data()
+    header_mit = create_header(
+        license_data,
+        "MIT",
+        year="2025",
+        name="Test User",
+        email="test@example.com",
+    )
+    header_gpl = create_header(
+        license_data,
+        "GPL-3.0-only",
+        year="2025",
+        name="Test User",
+        email="test@example.com",
+    )
+    assert header_mit and header_gpl
+
+    src_dir = tmp_path / "pkg"
+    src_dir.mkdir()
+    (src_dir / "alpha.py").write_text(f"{header_mit}print('a')\n", encoding="utf-8")
+    (src_dir / "beta.py").write_text(f"{header_gpl}print('b')\n", encoding="utf-8")
+    (src_dir / "missing.py").write_text("print('missing')\n", encoding="utf-8")
+
+    exit_code = check_headers(src_dir)
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert "Detected SPDX license identifiers:" in captured.out
+    assert f"{src_dir / 'alpha.py'} - MIT" in captured.out
+    assert f"{src_dir / 'beta.py'} - GPL-3.0-only" in captured.out
 
 
 def _make_license_data_with_text(license_text: str) -> LicenseData:

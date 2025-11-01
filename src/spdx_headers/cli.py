@@ -9,6 +9,7 @@ import argparse
 import os
 import sys
 
+from . import __version__
 from .core import find_src_directory, get_copyright_info
 from .data import DEFAULT_DATA_FILE, load_license_data, update_license_data
 from .operations import (
@@ -27,19 +28,12 @@ from .operations import (
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Manage SPDX headers in Python source files.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  %(prog)s -a GPL-3.0-only -p /path/to/repo
-  %(prog)s -c MIT -p /path/to/repo --dry-run
-  %(prog)s -v -p /path/to/repo
-  %(prog)s -s MIT
-  %(prog)s --check -p /path/to/repo
-        """,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     # Operation group
-    operation_group = parser.add_mutually_exclusive_group(required=False)
+    primary_actions = parser.add_argument_group("Primary actions")
+    operation_group = primary_actions.add_mutually_exclusive_group(required=False)
     operation_group.add_argument(
         "-a",
         "--add",
@@ -86,7 +80,8 @@ Examples:
     )
 
     # Extract option can be combined with add or change
-    parser.add_argument(
+    extraction_group = parser.add_argument_group("License extraction and listing")
+    extraction_group.add_argument(
         "-e",
         "--extract",
         nargs="?",
@@ -100,13 +95,7 @@ Examples:
         ),
     )
 
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show what would be changed without making modifications.",
-    )
-
-    parser.add_argument(
+    extraction_group.add_argument(
         "-l",
         "--list",
         nargs="?",
@@ -115,7 +104,20 @@ Examples:
         help="List available license keywords, optionally filtering by KEYWORD.",
     )
 
-    parser.add_argument(
+    extraction_group.add_argument(
+        "--keep-temp",
+        action="store_true",
+        help="When showing a license, keep the temporary file instead of deleting it.",
+    )
+
+    execution_group = parser.add_argument_group("Execution control")
+    execution_group.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be changed without making modifications.",
+    )
+
+    execution_group.add_argument(
         "-f",
         "--fix",
         action="store_true",
@@ -123,13 +125,15 @@ Examples:
     )
 
     parser.add_argument(
-        "--keep-temp",
-        action="store_true",
-        help="When showing a license, keep the temporary file instead of deleting it.",
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+        help="Show the version and exit.",
     )
 
     # Add repository path option
-    parser.add_argument(
+    path_group = parser.add_argument_group("Paths")
+    path_group.add_argument(
         "-p",
         "--path",
         type=str,
@@ -138,7 +142,7 @@ Examples:
     )
 
     # Add data file path option
-    parser.add_argument(
+    path_group.add_argument(
         "-d",
         "--data-file",
         type=str,

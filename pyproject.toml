@@ -8,7 +8,7 @@ name = "spdx-headers"
 dynamic = ["version"]
 description = "A command-line tool for managing SPDX headers in Python source files"
 readme = "README.md"
-license = { text = "GPL-3.0-only" }
+license = { text = "AGPL-3.0-or-later" }
 authors = [{ name = "Richard Majewski", email = "uglyegg@entropy.quest" }]
 maintainers = [{ name = "Richard Majewski", email = "uglyegg@entropy.quest" }]
 keywords = ["spdx", "license", "headers", "compliance", "copyright"]

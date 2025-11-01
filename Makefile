@@ -1,9 +1,23 @@
-.PHONY: help install install-dev sync clean clean-all test test-cov lint format type-check pre-commit build publish docs serve-docs update-spdx-data run-example bump-version
+# Configure template defaults for this project
+RUN := uv run
+RUN_DEV := uv run --extra dev
+PYTEST_COV_ARGS := --cov=src --cov-report=html --cov-report=term-missing
+LINT_PATHS := src tests
+FORMAT_PATHS := src tests
+CLEAN_FIND_EXTS := pyc pyo orig rej
+CLEAN_CACHE_DIRS := .pytest_cache .mypy_cache .tox htmlcov .coverage .ruff_cache
+CLEAN_ALL_EXTRA := .uv uv.lock
+TYPECHECK_PATHS := src
+PRE_COMMIT := python -m pre_commit
 
-# Default target
-help: ## Show this help message
-	@echo "Available targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+# Indicate which template targets are overridden locally
+TEMPLATE_SKIP_install := 1
+TEMPLATE_SKIP_install_dev := 1
+
+# Load shared template definitions
+include MAKEFILE.template
+
+.PHONY: sync sync-dev build publish publish-test serve-docs update-spdx-data bump-version list-licenses verify-headers check-headers dev-setup quick-check release-check info update-deps lock ci-install ci-test ci-check show-outdated tree example-add-headers example-change-license example-extract-license
 
 # Environment setup
 install: ## Install the package in the current environment
@@ -18,57 +32,6 @@ sync: ## Sync dependencies with uv.lock
 sync-dev: ## Sync development dependencies
 	uv sync --dev
 
-# Cleaning targets
-clean: ## Clean build artifacts and cache files
-	rm -rf build/
-	rm -rf dist/
-	rm -rf *.egg-info/
-	rm -rf .pytest_cache/
-	rm -rf .coverage
-	rm -rf htmlcov/
-	rm -rf .mypy_cache/
-	rm -rf .tox/
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
-	find . -type f -name "*.pyo" -delete
-	find . -type f -name "*.orig" -delete
-	find . -type f -name "*.rej" -delete
-
-clean-all: clean ## Clean everything including virtual environment
-	rm -rf .venv/
-	rm -rf .uv/
-	rm -rf uv.lock
-
-# Testing
-test: ## Run tests
-	uv run pytest
-
-test-cov: ## Run tests with coverage
-	uv run pytest --cov=src --cov-report=html --cov-report=term-missing
-
-test-verbose: ## Run tests with verbose output
-	uv run pytest -v
-
-# Code quality
-lint: ## Run linting checks
-	uv run --extra dev ruff check src tests
-	uv run --extra dev black --check src tests
-	uv run --extra dev isort --check-only src tests
-
-format: ## Format code with black and isort
-	uv run --extra dev black src tests
-	uv run --extra dev isort src tests
-
-type-check: ## Run type checking with mypy
-	uv run --extra dev mypy src
-
-# Pre-commit
-pre-commit-install: ## Install pre-commit hooks
-	uv run --extra dev python -m pre_commit install
-
-pre-commit: ## Run pre-commit on all files
-	uv run --extra dev python -m pre_commit run --all-files
-
 bump-version: ## Bump the project version (usage: make bump-version part=patch|minor|major or version=X.Y.Z)
 	@if [ -n "$(version)" ]; then \
 		uv run --extra dev python scripts/bump_version.py --set $(version); \
@@ -76,9 +39,6 @@ bump-version: ## Bump the project version (usage: make bump-version part=patch|m
 		uv run --extra dev python scripts/bump_version.py --part $${part:-patch}; \
 	fi
 	@uv run --extra dev hatch version
-
-# Quality check combo
-check: lint type-check test ## Run all quality checks
 
 # Build and publish
 build: clean ## Build the package
@@ -94,10 +54,6 @@ publish: build ## Publish to PyPI
 update-spdx-data: ## Update the SPDX license data
 	uv run python -m spdx_headers.generate_data
 
-run-example: ## Run example usage of the tool
-	@echo "Adding MIT headers to example files..."
-	uv run spdx-headers --add MIT --dry-run
-
 list-licenses: ## List all available SPDX licenses
 	uv run spdx-headers --list
 
@@ -106,10 +62,6 @@ verify-headers: ## Verify SPDX headers in the project
 
 check-headers: ## Check for missing headers (CI-friendly)
 	uv run spdx-headers --check
-
-# Documentation (if you add docs later)
-docs: ## Build documentation
-	@echo "Documentation target - implement when adding docs"
 
 serve-docs: ## Serve documentation locally
 	@echo "Documentation serving target - implement when adding docs"
@@ -127,11 +79,11 @@ release-check: clean check build ## Full release preparation check
 info: ## Show environment information
 	@echo "Python version:"
 	@uv run python --version
-	@echo "\nUV version:"
+	@echo -e "\nUV version:"
 	@uv --version
-	@echo "\nInstalled packages:"
+	@echo -e "\nInstalled packages:"
 	@uv pip list
-	@echo "\nProject info:"
+	@echo -e "\nProject info:"
 	@uv run python -c "import spdx_tools; print(f'spdx-tools location: {spdx_tools.__file__}')" 2>/dev/null || echo "spdx-tools not installed"
 
 # Dependency management

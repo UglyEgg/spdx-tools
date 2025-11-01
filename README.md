@@ -1,7 +1,7 @@
 
 # SPDX Headers
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE-GPL-3.0-only)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 
 `spdx-headers` is a command-line tool for auditing and maintaining SPDX license headers in Python projects. It can add, verify, and update SPDX headers, extract license texts, and integrates seamlessly with `pre-commit`.
 
@@ -19,7 +19,7 @@
 
 - **Automated SPDX management** – add, change, remove, or verify headers across your Python sources.
 - **Auto-fix missing headers** – infer the repository’s SPDX identifier and repair files automatically.
-- **SPDX license data updates** – fetches the latest license list directly from SPDX.
+- **SPDX license data updates** – fetches the latest license list directly from SPDX.AGPL-3.0-or-later
 - **Pre-commit integration** – ships with a hook that can block commits or auto-fix issues.
 - **License extraction** – generate LICENSE files by SPDX identifier.
 - **Dry-run support** – inspect changes before applying them.
@@ -53,8 +53,8 @@ uv run pre-commit install
 ## Quick Start
 
 ```bash
-# Add GPL-3.0-only headers to all Python files
-spdx-headers --add GPL-3.0-only
+# Add AGPL-3.0-or-later headers to all Python files
+spdx-headers --add AGPL-3.0-or-later
 
 # Verify all files have valid SPDX headers
 spdx-headers --verify
@@ -77,10 +77,10 @@ spdx-headers --extract --add MIT --dry-run
 | `spdx-headers --change LICENSE` | Replace existing headers with the specified SPDX identifier. |
 | `spdx-headers --remove` | Remove SPDX headers from all Python files. |
 | `spdx-headers --verify` | Print a report of files missing headers (no exit code). |
-| `spdx-headers --check [--fix]` | Return exit code 0/1 depending on compliance; `--fix` attempts auto-repair. |
+| `spdx-headers --check [--fix]` | Return exit code 0/1 depending on compliance; `--fix` attempts auto-repair and the command reports detected SPDX identifiers (listing files if multiple licenses are found). |
 | `spdx-headers --list [KEYWORD]` | List available SPDX identifiers, optionally filtering by keyword. |
 | `spdx-headers --show LICENSE [--keep-temp]` | Display a license summary using the system’s default viewer (optionally keep the temp file). |
-| `spdx-headers --extract --add LICENSE` | Extract the license text into `LICENSE-<id>`. |
+| `spdx-headers --extract [KEYWORD] [--add LICENSE]` | Extract license text for identifiers matching `KEYWORD`; combine with `--add`/`--change` to write headers and license text together. |
 | `spdx-headers --update` | Download the latest SPDX license data. |
 
 See [`docs/usage.md`](docs/usage.md) for a comprehensive walkthrough.
@@ -91,7 +91,7 @@ See [`docs/usage.md`](docs/usage.md) for a comprehensive walkthrough.
 
 ```yaml
 - repo: https://github.com/uglyegg/spdx-tools
-  rev: v0.1.0
+  rev: v1.0.0
   hooks:
     - id: spdx-header-check
 ```
@@ -113,4 +113,4 @@ Contributions are welcome! Please open an issue or pull request. When submitting
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 (GPL-3.0-only). See the `LICENSE-*` files for details. License texts can be generated via `spdx-headers --extract`.
+This project is licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See the `LICENSE` file for details. Additional license texts can be generated via `spdx-headers --extract`.

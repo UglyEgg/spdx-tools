@@ -151,8 +151,8 @@ def check_missing_headers(directory: PathLike, dry_run: bool = False) -> List[st
     return missing_headers
 
 
-def _collect_license_identifiers(directory: PathLike) -> List[str]:
-    identifiers: List[str] = []
+def _collect_license_identifiers(directory: PathLike) -> List[Tuple[str, str]]:
+    identifiers: List[Tuple[str, str]] = []
     for filepath in find_python_files(directory):
         if not has_spdx_header(filepath):
             continue
@@ -162,7 +162,7 @@ def _collect_license_identifiers(directory: PathLike) -> List[str]:
                 for line in file_handle:
                     match = LICENSE_PATTERN.search(line)
                     if match:
-                        identifiers.append(match.group("identifier"))
+                        identifiers.append((filepath, match.group("identifier")))
                         break
         except OSError:
             continue
@@ -185,7 +185,7 @@ def auto_fix_headers(
         return True
 
     identifiers = _collect_license_identifiers(directory)
-    unique_identifiers = {identifier for identifier in identifiers}
+    unique_identifiers = {identifier for _, identifier in identifiers}
 
     if not unique_identifiers:
         print("✗ Unable to determine an SPDX license to apply automatically.")
@@ -242,6 +242,18 @@ def check_headers(directory: PathLike) -> int:
     Returns 0 if all files have headers, 1 if any are missing.
     """
     missing_files = check_missing_headers(directory)
+    identifiers_with_files = _collect_license_identifiers(directory)
+    identifiers = sorted({identifier for _, identifier in identifiers_with_files})
+
+    if identifiers:
+        if len(identifiers) > 1:
+            print("Detected SPDX license identifiers:")
+            for path, identifier in sorted(identifiers_with_files):
+                print(f"  - {path} - {identifier}")
+        else:
+            print(f"Detected SPDX license identifier: {identifiers[0]}")
+    else:
+        print("Detected SPDX license identifiers: none found.")
 
     if not missing_files:
         print("✓ All Python files have valid SPDX headers.")
