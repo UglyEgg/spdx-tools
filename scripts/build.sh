@@ -15,17 +15,14 @@ PY
 
 echo "Building spdx-headers package (version ${VERSION})…"
 
-# Ensure required tooling is available
-python -m pip install --quiet --upgrade pip build twine
-
 # Clean previous builds
 rm -rf dist/ build/ *.egg-info/
 
 # Build source distribution and wheel
-python -m build
+uv run --with build python -m build
 
 # Verify metadata renders correctly on PyPI
-python -m twine check dist/*
+uv run --with twine python -m twine check dist/*
 
 echo "Build complete. Files in dist/:"
 ls -la dist/

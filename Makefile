@@ -1,9 +1,11 @@
 # Configure runtime paths
 export UV_CACHE_DIR := $(CURDIR)/.uv-cache
 
+PYTHON := $(CURDIR)/.venv/bin/python
+
 # Configure template defaults for this project
-RUN := uv run
-RUN_DEV := uv run --extra dev
+RUN := $(PYTHON) -m
+RUN_DEV := $(PYTHON) -m
 PYTEST_COV_ARGS := --cov=src --cov-report=html --cov-report=term-missing
 LINT_PATHS := src tests
 FORMAT_PATHS := src tests
@@ -11,29 +13,38 @@ CLEAN_FIND_EXTS := pyc pyo orig rej
 CLEAN_CACHE_DIRS := .pytest_cache .mypy_cache .tox htmlcov .coverage .ruff_cache
 CLEAN_ALL_EXTRA := .uv uv.lock
 TYPECHECK_PATHS := src
-PRE_COMMIT := python -m pre_commit
+PRE_COMMIT := pre_commit
+
+MARKDOWNLINT_HOOK := markdownlint-cli2
 
 # Indicate which template targets are overridden locally
 TEMPLATE_SKIP_install := 1
 TEMPLATE_SKIP_install_dev := 1
+TEMPLATE_SKIP_info := 1
 
 # Load shared template definitions
-include MAKEFILE.template
+include Makefile.template
 
-.PHONY: sync sync-dev build publish publish-test serve-docs update-spdx-data bump-version list-licenses verify-headers check-headers dev-setup quick-check release-check info update-deps lock ci-install ci-test ci-check show-outdated tree example-add-headers example-change-license example-extract-license
+LINT_COMMANDS := \
+    $(RUN_DEV) $(RUFF) $(RUFF_ARGS) && \
+    $(RUN_DEV) $(BLACK) $(BLACK_LINT_ARGS) && \
+    $(RUN_DEV) $(ISORT) $(ISORT_LINT_ARGS) && \
+    $(RUN_DEV) $(PRE_COMMIT) run $(MARKDOWNLINT_HOOK) --all-files
+
+.PHONY: sync sync-dev build publish publish-test serve-docs update-spdx-data bump-version list-licenses verify-headers check-headers dev-setup quick-check release-check info update-deps lock ci-install ci-test ci-check show-outdated tree
 
 # Environment setup
 install: ## Install the package in the current environment
 	uv pip install -e .
 
 install-dev: ## Install the package with development dependencies
-	uv sync --dev
+	uv sync --extra dev
 
 sync: ## Sync dependencies with uv.lock
 	uv sync
 
 sync-dev: ## Sync development dependencies
-	uv sync --dev
+	uv sync --extra dev
 
 bump-version: ## Bump the project version (usage: make bump-version part=patch|minor|major or version=X.Y.Z)
 	@if [ -n "$(version)" ]; then \
@@ -53,12 +64,36 @@ publish-test: ## Build and publish to TestPyPI
 publish: ## Build and publish to PyPI
 	./scripts/release.sh
 
+# Environment info
+info: ## Show environment information
+	@echo "Python version:"
+	@$(PYTHON) --version
+	@if command -v uv >/dev/null 2>&1; then \
+		echo; \
+		echo "UV version:"; \
+		uv --version; \
+		echo; \
+		echo "Installed packages (uv pip list):"; \
+		uv pip list; \
+	else \
+		echo; \
+		echo "UV not found on PATH – skipping uv diagnostics."; \
+	fi
+	@echo
+	@echo "Project info:"
+	@PYTHONPATH=src $(PYTHON) -c "import importlib.util; spec = importlib.util.find_spec('spdx_headers'); print(f'spdx_headers module: {spec.origin}' if spec and spec.origin else 'spdx_headers not installed')"
+
 # Development utilities
 update-spdx-data: ## Update the SPDX license data
 	uv run python -m spdx_headers.generate_data
 
 list-licenses: ## List all available SPDX licenses
-	uv run spdx-headers --list
+	@if [ ! -f src/spdx_headers/_version.py ]; then \
+		echo "Error: src/spdx_headers/_version.py is missing."; \
+		echo "Run \`python scripts/bump_version.py --set <version>\` to regenerate it."; \
+		exit 1; \
+	fi
+	PYTHONPATH=src $(PYTHON) -m spdx_headers.cli --list
 
 verify-headers: ## Verify SPDX headers in the project
 	uv run spdx-headers --verify
@@ -77,17 +112,6 @@ dev-setup: install-dev pre-commit-install update-spdx-data ## Complete developme
 quick-check: format lint test ## Quick development check (format, lint, test)
 
 release-check: clean check build ## Full release preparation check
-
-# Environment info
-info: ## Show environment information
-	@echo "Python version:"
-	@uv run python --version
-	@echo -e "\nUV version:"
-	@uv --version
-	@echo -e "\nInstalled packages:"
-	@uv pip list
-	@echo -e "\nProject info:"
-	@uv run python -c "import spdx_tools; print(f'spdx-tools location: {spdx_tools.__file__}')" 2>/dev/null || echo "spdx-tools not installed"
 
 # Dependency management
 update-deps: ## Update all dependencies
@@ -116,13 +140,3 @@ show-outdated: ## Show outdated dependencies
 
 tree: ## Show project structure
 	tree -I '__pycache__|*.pyc|*.pyo|.git|.pytest_cache|.mypy_cache|*.egg-info|build|dist|.venv|.uv'
-
-# Example workflows
-example-add-headers: ## Example: Add AGPL-3.0-or-later headers
-	uv run spdx-headers --add AGPL-3.0-or-later --dry-run
-
-example-change-license: ## Example: Change to MIT license
-	uv run spdx-headers --change MIT --dry-run
-
-example-extract-license: ## Example: Extract license file
-	uv run spdx-headers --add Apache-2.0 --extract --dry-run

@@ -91,6 +91,44 @@ make publish
 
 The publish targets call `scripts/release.sh`, which refuses to proceed if the git tree is dirty, rebuilds packages, runs `twine check`, and then uploads with `twine`. Make sure your PyPI/TestPyPI credentials are configured (`~/.pypirc` or environment variables).
 
+### Credential management
+
+Twine supports two convenient credential locations:
+
+- **Environment variables** (good for local scripts/CI):
+
+  ```bash
+  export TWINE_USERNAME=__token__
+  export TWINE_PASSWORD='pypi-AgEN...'
+  # For TestPyPI only:
+  export TWINE_REPOSITORY=testpypi
+  ```
+
+  Store these in a local `.env` (already ignored by git) or your shell profile. Betas often use separate tokens for TestPyPI vs PyPI.
+
+- **`~/.pypirc`** (one file for multiple repos):
+
+  ```ini
+  [distutils]
+  index-servers =
+      testpypi
+      pypi
+
+  [testpypi]
+  repository = https://test.pypi.org/legacy/
+  username = __token__
+  password = pypi-AgEN...
+
+  [pypi]
+  repository = https://upload.pypi.org/legacy/
+  username = __token__
+  password = pypi-AgEI...
+  ```
+
+  Keep `~/.pypirc` out of version control (the repo’s `.gitignore` already ignores `.env`).
+
+Pick the option that fits your workflow; the release script will automatically pick them up.
+
 ## 6. Pull Requests
 
 Before opening a PR:

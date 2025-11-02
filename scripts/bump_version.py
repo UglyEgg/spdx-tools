@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import re
 from pathlib import Path
 from typing import List, Tuple
 
@@ -146,24 +145,37 @@ def update_version_file(new_version: str) -> None:
     if HEADER_BLOCK not in content:
         content = HEADER_BLOCK + content.lstrip()
 
-    content = re.sub(
-        r'(__version__\s*=\s*version\s*=\s*")[^"]+("\n)',
-        rf"\1{new_version}\2",
-        content,
-    )
-    tuple_fragments = []
+    lines = content.splitlines(keepends=True)
+
+    def _rewrite_line(target: str, replacement: str) -> None:
+        for index, line in enumerate(lines):
+            if line.strip().startswith(target):
+                prefix = line[: line.index(target)] if target in line else ""
+                newline = "\n" if line.endswith("\n") else ""
+                lines[index] = f"{prefix}{replacement}{newline}"
+                return
+        raise RuntimeError(f"Unable to update {target} in _version.py")
+
+    quote = '"'
+    for line in lines:
+        if line.strip().startswith("__version__ = version ="):
+            quote = '"' if '"' in line else "'"
+            break
+
+    version_line = f"__version__ = version = {quote}{new_version}{quote}"
+    _rewrite_line("__version__ = version =", version_line)
+
+    tuple_fragments: list[str] = []
     for fragment in new_version.split("."):
         try:
             tuple_fragments.append(str(int(fragment)))
         except ValueError:
             tuple_fragments.append(repr(fragment))
     tuple_repr = ", ".join(tuple_fragments)
-    content = re.sub(
-        r"(__version_tuple__\s*=\s*version_tuple\s*=\s*\()[^\)]+(\))",
-        rf"\1{tuple_repr}\2",
-        content,
-    )
-    VERSION_FILE.write_text(content, encoding="utf-8")
+    tuple_line = f"__version_tuple__ = version_tuple = ({tuple_repr})"
+    _rewrite_line("__version_tuple__ = version_tuple =", tuple_line)
+
+    VERSION_FILE.write_text("".join(lines), encoding="utf-8")
 
 
 def main() -> None:

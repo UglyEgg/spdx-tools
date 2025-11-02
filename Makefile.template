@@ -9,6 +9,7 @@ VENV_DIR ?= .venv
 PYTHON ?= python
 
 # Command helpers (override in your Makefile as needed)
+UV_TOOL ?= uv
 RUN ?= uvx
 RUN_DEV ?= $(RUN)
 PYTEST ?= pytest
@@ -20,6 +21,9 @@ TYPECHECK_PATHS ?= src
 PRE_COMMIT ?= python -m pre_commit
 PRE_COMMIT_INSTALL_ARGS ?= install
 PRE_COMMIT_RUN_ARGS ?= run --all-files
+
+MARKDOWNLINT ?= markdownlint-cli2
+MARKDOWNLINT_ARGS ?= README.md CHANGELOG.md docs
 
 LINT_PATHS ?= $(SOURCE_DIR) $(TEST_DIR)
 FORMAT_PATHS ?= $(SOURCE_DIR) $(TEST_DIR)
@@ -34,9 +38,10 @@ ISORT_LINT_ARGS ?= --check-only $(FORMAT_PATHS)
 ISORT_FORMAT_ARGS ?= $(FORMAT_PATHS)
 
 LINT_COMMANDS ?= \
-	$(RUN_DEV) $(RUFF) $(RUFF_ARGS) && \
-	$(RUN_DEV) $(BLACK) $(BLACK_LINT_ARGS) && \
-	$(RUN_DEV) $(ISORT) $(ISORT_LINT_ARGS)
+    $(RUN_DEV) $(RUFF) $(RUFF_ARGS) && \
+    $(RUN_DEV) $(BLACK) $(BLACK_LINT_ARGS) && \
+    $(RUN_DEV) $(ISORT) $(ISORT_LINT_ARGS) && \
+    $(RUN_DEV) $(MARKDOWNLINT) $(MARKDOWNLINT_ARGS)
 
 FORMAT_COMMANDS ?= \
 	$(RUN_DEV) $(BLACK) $(BLACK_FORMAT_ARGS) && \
@@ -155,4 +160,13 @@ endif
 ifndef TEMPLATE_SKIP_docs
 docs: ## Build project documentation (override in project if needed).
 	@echo "Documentation target is not implemented in the template."
+endif
+
+ifndef TEMPLATE_SKIP_info
+info: ## Show environment information
+	@echo "Python version:"
+	@$(PYTHON) --version
+	@echo
+	@echo "Project info:"
+	@$(PYTHON) -c "import importlib.util; spec = importlib.util.find_spec('spdx_headers'); print(f'spdx_headers module: {spec.origin}' if spec and spec.origin else 'spdx_headers not installed')"
 endif

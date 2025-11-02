@@ -27,6 +27,16 @@ if [[ -n "$(git status --porcelain)" ]]; then
   exit 1
 fi
 
+VERSION_FILE="src/spdx_headers/_version.py"
+if [[ ! -f "$VERSION_FILE" ]]; then
+  cat <<'EOF' >&2
+Error: src/spdx_headers/_version.py is missing.
+Run `python scripts/bump_version.py --set <version>` (or reinstall the package)
+to regenerate the version file before publishing.
+EOF
+  exit 1
+fi
+
 VERSION=$(python - <<'PY'
 import pathlib, re
 
@@ -54,6 +64,6 @@ echo "Running full build pipeline…"
 ./scripts/build.sh
 
 echo "Uploading artifacts to ${REPOSITORY}…"
-python -m twine upload --repository "${REPOSITORY}" dist/*
+uv run --with twine python -m twine upload --repository "${REPOSITORY}" dist/*
 
 echo "Release complete!"
