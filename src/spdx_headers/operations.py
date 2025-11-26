@@ -21,10 +21,10 @@ from urllib.parse import quote_plus
 
 from .core import (
     LICENSE_PATTERN,
+    FileProcessor,
     create_header,
     find_python_files,
     has_spdx_header,
-    remove_spdx_header,
 )
 from .data import LicenseData, LicenseEntry
 from .encoding import read_file_with_encoding, write_file_with_encoding
@@ -308,6 +308,7 @@ def add_header_to_py_files(
     errors: List[Tuple[str, str]] = []
 
     for filepath in python_files:
+        # Quick check without loading full file
         if has_spdx_header(filepath):
             continue
 
@@ -363,7 +364,7 @@ def change_header_in_py_files(
     email: str,
     dry_run: bool = False,
 ) -> None:
-    """Change SPDX headers in Python files to a new license."""
+    """Change SPDX headers in Python files using single-pass processing."""
     if license_key not in license_data["licenses"]:
         print(f"Error: License keyword '{license_key}' is not supported.")
         return
@@ -377,6 +378,7 @@ def change_header_in_py_files(
     files_to_modify: List[str] = []
 
     for filepath in python_files:
+        # Quick check without loading full file
         if not has_spdx_header(filepath):
             continue
 
@@ -385,25 +387,13 @@ def change_header_in_py_files(
             files_to_modify.append(filepath)
         else:
             try:
-                # Remove existing header
-                new_lines, had_header = remove_spdx_header(filepath)
+                # Single-pass processing with atomic write
+                processor = FileProcessor(filepath)
+                processor.load()
 
-                if had_header:
-                    # Check for shebang line
-                    shebang = ""
-                    if new_lines and new_lines[0].startswith("#!"):
-                        shebang = new_lines.pop(0)
-
-                    # Prepare new content
-                    final_lines = []
-                    if shebang:
-                        final_lines.append(shebang)
-                    final_lines.extend(header_to_add.splitlines(keepends=True))
-                    final_lines.extend(new_lines)
-
-                    # Write back to file
-                    with open(filepath, "w", encoding="utf-8") as f:
-                        f.writelines(final_lines)
+                if processor.has_header():
+                    processor.add_header(header_to_add)
+                    processor.save()
                     print(f"✓ Changed header in: {filepath}")
                     files_to_modify.append(filepath)
                 else:
@@ -417,12 +407,13 @@ def change_header_in_py_files(
 
 
 def remove_header_from_py_files(directory: PathLike, dry_run: bool = False) -> None:
-    """Remove SPDX headers from Python files."""
+    """Remove SPDX headers from Python files using single-pass processing."""
     python_files = find_python_files(directory)
 
     files_to_modify: List[str] = []
 
     for filepath in python_files:
+        # Quick check without loading full file
         if not has_spdx_header(filepath):
             continue
 
@@ -431,12 +422,13 @@ def remove_header_from_py_files(directory: PathLike, dry_run: bool = False) -> N
             files_to_modify.append(filepath)
         else:
             try:
-                new_lines, had_header = remove_spdx_header(filepath)
+                # Single-pass processing with atomic write
+                processor = FileProcessor(filepath)
+                processor.load()
 
-                if had_header:
-                    # Write back to file
-                    with open(filepath, "w", encoding="utf-8") as file_handle:
-                        file_handle.writelines(new_lines)
+                if processor.has_header():
+                    processor.remove_header()
+                    processor.save()
                     print(f"✓ Removed header from: {filepath}")
                     files_to_modify.append(filepath)
                 else:
