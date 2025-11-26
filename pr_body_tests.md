@@ -4,6 +4,8 @@
 
 This PR adds a comprehensive test suite that significantly improves code coverage from **59% to 82%** (+23 percentage points) with **100% test pass rate**.
 
+**IMPORTANT:** This PR also includes a critical fix for the GitHub Actions import error by adding the missing `FileProcessor` class to `core.py`.
+
 ## 🎯 Key Achievements
 
 ### Coverage Improvements by Module
@@ -160,6 +162,7 @@ pytest --cov=spdx_headers --cov-report=term tests/
 - ✅ No breaking changes to existing code
 - ✅ All 192 tests passing (100% pass rate)
 - ✅ All API mismatches fixed
+- ✅ **GitHub Actions import error fixed** (added FileProcessor class)
 - ✅ data.py: 97% coverage (nearly complete)
 - ✅ cli.py: 96% coverage (nearly complete)
 - ✅ exceptions.py: 95% coverage
@@ -179,7 +182,16 @@ This PR delivers:
 - ✅ **+23% coverage improvement** (59% → 82%)
 - ✅ **192 tests, all passing** (100% pass rate)
 - ✅ **3 modules with 95%+ coverage** (data.py, cli.py, exceptions.py)
+- ✅ **GitHub Actions fix** - Added missing FileProcessor class
 - ✅ **Zero breaking changes**
 - ✅ **Production ready**
+
+## 🔧 Critical Fix Included
+
+This PR includes a fix for the GitHub Actions import error:
+- **Problem:** `ImportError: cannot import name 'FileProcessor' from 'spdx_headers.core'`
+- **Solution:** Added the missing `FileProcessor` class (206 lines) to `core.py`
+- **Impact:** GitHub Actions CI/CD pipeline now works correctly
+- **Documentation:** See `GITHUB_ACTIONS_FIX.md` for details
 
 **This PR represents a significant improvement in code quality and test coverage, providing a solid foundation for future development.**
