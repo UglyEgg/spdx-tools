@@ -34,11 +34,13 @@ class TestCreateHeader:
     def test_create_header_basic(self, license_data):
         """Test creating basic header."""
         header = create_header(
-            "MIT",
             license_data,
-            copyright_holder="Test User",
-            year=2025,
+            "MIT",
+            "2025",
+            "Test User",
+            "",
         )
+        assert header is not None
         assert "SPDX-FileCopyrightText:" in header
         assert "SPDX-License-Identifier:" in header
         assert "MIT" in header
@@ -48,22 +50,25 @@ class TestCreateHeader:
     def test_create_header_with_email(self, license_data):
         """Test creating header with email."""
         header = create_header(
-            "MIT",
             license_data,
-            copyright_holder="Test User",
-            email="test@example.com",
-            year=2025,
+            "MIT",
+            "2025",
+            "Test User",
+            "test@example.com",
         )
+        assert header is not None
         assert "test@example.com" in header
 
     def test_create_header_without_email(self, license_data):
         """Test creating header without email."""
         header = create_header(
-            "MIT",
             license_data,
-            copyright_holder="Test User",
-            year=2025,
+            "MIT",
+            "2025",
+            "Test User",
+            "",
         )
+        assert header is not None
         assert "Test User" in header
 
     def test_create_header_different_licenses(self, license_data):
@@ -72,22 +77,26 @@ class TestCreateHeader:
         for license_id in licenses:
             if license_id in license_data["licenses"]:
                 header = create_header(
-                    license_id,
                     license_data,
-                    copyright_holder="Test User",
-                    year=2025,
+                    license_id,
+                    "2025",
+                    "Test User",
+                    "",
                 )
+                assert header is not None
                 assert license_id in header
 
     def test_create_header_invalid_license(self, license_data):
         """Test creating header with invalid license."""
-        with pytest.raises(KeyError):
-            create_header(
-                "INVALID-LICENSE",
-                license_data,
-                copyright_holder="Test User",
-                year=2025,
-            )
+        header = create_header(
+            license_data,
+            "INVALID-LICENSE",
+            "2025",
+            "Test User",
+            "",
+        )
+        # Should return None for invalid license
+        assert header is None
 
 
 class TestHasSPDXHeader:

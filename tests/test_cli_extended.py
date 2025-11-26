@@ -52,7 +52,7 @@ class TestCLICheckCommand:
         mock_check.return_value = 1  # Some files missing headers
 
         with patch.object(
-            sys, "argv", ["spdx-headers", "--check", "--fix", str(tmp_path)]
+            sys, "argv", ["spdx-headers", "--check", "--fix", "-p", str(tmp_path)]
         ):
             result = main()
             mock_fix.assert_called_once()
@@ -101,6 +101,7 @@ class TestCLIAddCommand:
                 "--extract",
                 "",
                 "--dry-run",
+                "-p",
                 str(tmp_path),
             ],
         ):
@@ -122,6 +123,7 @@ class TestCLIAddCommand:
                 "--extract",
                 "Apache-2.0",
                 "--dry-run",
+                "-p",
                 str(tmp_path),
             ],
         ):
@@ -151,6 +153,7 @@ class TestCLIChangeCommand:
                 "--extract",
                 "",
                 "--dry-run",
+                "-p",
                 str(tmp_path),
             ],
         ):
@@ -176,6 +179,7 @@ class TestCLIChangeCommand:
                 "--extract",
                 "GPL-3.0",
                 "--dry-run",
+                "-p",
                 str(tmp_path),
             ],
         ):
@@ -196,7 +200,7 @@ class TestCLIRemoveCommand:
         )
 
         with patch.object(
-            sys, "argv", ["spdx-headers", "--remove", "--dry-run", str(tmp_path)]
+            sys, "argv", ["spdx-headers", "--remove", "--dry-run", "-p", str(tmp_path)]
         ):
             result = main()
             assert result == 0
@@ -214,7 +218,7 @@ class TestCLIVerifyCommand:
             "print('hello')\n"
         )
 
-        with patch.object(sys, "argv", ["spdx-headers", "--verify", str(tmp_path)]):
+        with patch.object(sys, "argv", ["spdx-headers", "--verify", "-p", str(tmp_path)]):
             result = main()
             assert result == 0
 
@@ -227,7 +231,7 @@ class TestCLIExtractCommand:
         with patch.object(
             sys,
             "argv",
-            ["spdx-headers", "--extract", "nonexistent-license-xyz", str(tmp_path)],
+            ["spdx-headers", "--extract", "nonexistent-license-xyz", "-p", str(tmp_path)],
         ):
             result = main()
             # Should return 1 when no matches
@@ -236,7 +240,7 @@ class TestCLIExtractCommand:
     def test_extract_with_keyword(self, tmp_path):
         """Test extract with keyword."""
         with patch.object(
-            sys, "argv", ["spdx-headers", "--extract", "MIT", str(tmp_path)]
+            sys, "argv", ["spdx-headers", "--extract", "MIT", "-p", str(tmp_path)]
         ):
             result = main()
             assert result == 0
@@ -267,9 +271,8 @@ class TestCLIEdgeCases:
                 "spdx-headers",
                 "--add",
                 "MIT",
-                "--year",
-                "2024",
                 "--dry-run",
+                "-p",
                 str(tmp_path),
             ],
         ):
@@ -288,9 +291,8 @@ class TestCLIEdgeCases:
                 "spdx-headers",
                 "--add",
                 "MIT",
-                "--name",
-                "Test User",
                 "--dry-run",
+                "-p",
                 str(tmp_path),
             ],
         ):
@@ -309,9 +311,8 @@ class TestCLIEdgeCases:
                 "spdx-headers",
                 "--add",
                 "MIT",
-                "--email",
-                "test@example.com",
                 "--dry-run",
+                "-p",
                 str(tmp_path),
             ],
         ):
@@ -330,13 +331,8 @@ class TestCLIEdgeCases:
                 "spdx-headers",
                 "--add",
                 "MIT",
-                "--year",
-                "2024",
-                "--name",
-                "Test User",
-                "--email",
-                "test@example.com",
                 "--dry-run",
+                "-p",
                 str(tmp_path),
             ],
         ):
@@ -367,6 +363,7 @@ class TestCLIEdgeCases:
                 "--add",
                 "MIT",
                 "--dry-run",
+                "-p",
                 str(tmp_path),
             ],
         ):
@@ -459,7 +456,7 @@ class TestCLIOutputFormatting:
         file1 = tmp_path / "test.py"
         file1.write_text("print('hello')\n")
 
-        with patch.object(sys, "argv", ["spdx-headers", "--check", str(tmp_path)]):
+        with patch.object(sys, "argv", ["spdx-headers", "--check", "-p", str(tmp_path)]):
             main()
             captured = capsys.readouterr()
             # Should contain check results
