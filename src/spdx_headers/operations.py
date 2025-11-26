@@ -241,7 +241,11 @@ def check_headers(directory: PathLike) -> int:
     Check for missing headers and return appropriate exit code for pre-commit hooks.
     Returns 0 if all files have headers, 1 if any are missing.
     """
-    missing_files = check_missing_headers(directory)
+    try:
+        missing_files = check_missing_headers(directory)
+    except FileNotFoundError:
+        return 1
+
     identifiers_with_files = _collect_license_identifiers(directory)
     identifiers = sorted({identifier for _, identifier in identifiers_with_files})
 
