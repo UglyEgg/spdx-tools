@@ -9,12 +9,12 @@ from pathlib import Path
 import pytest
 
 from spdx_headers.core import (
-    check_headers,
     create_header,
     has_spdx_header,
     remove_spdx_header,
 )
 from spdx_headers.data import load_license_data
+from spdx_headers.operations import check_headers
 
 
 def test_has_spdx_header_detects_present_header(tmp_path: Path) -> None:
