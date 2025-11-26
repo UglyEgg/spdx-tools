@@ -27,6 +27,13 @@ from .core import (
     remove_spdx_header,
 )
 from .data import LicenseData, LicenseEntry
+from .encoding import read_file_with_encoding, write_file_with_encoding
+from .exceptions import (
+    EncodingError,
+    FileProcessingError,
+    LicenseNotFoundError,
+    find_similar_licenses,
+)
 
 PathLike = Union[str, Path]
 OpenEditorCallback = Callable[[Path], None]
@@ -279,18 +286,26 @@ def add_header_to_py_files(
     email: str,
     dry_run: bool = False,
 ) -> None:
-    """Add SPDX headers to Python files, optionally in dry-run mode."""
+    """Add SPDX headers to Python files with improved error handling."""
+    # Validate license exists
     if license_key not in license_data["licenses"]:
-        print(f"Error: License keyword '{license_key}' is not supported.")
-        return
+        # Find similar licenses
+        available_licenses = list(license_data["licenses"].keys())
+        suggestions = find_similar_licenses(license_key, available_licenses)
+        raise LicenseNotFoundError(license_key, suggestions)
 
     header_to_add = create_header(license_data, license_key, year, name, email)
     if header_to_add is None:
-        print(f"Error: No header template available for '{license_key}'.")
-        return
+        raise FileProcessingError(
+            directory,
+            f"No header template available for '{license_key}'",
+            "Check the license data file or update it with 'spdx-headers --update'",
+        )
+
     python_files = find_python_files(directory)
 
     files_to_modify: List[str] = []
+    errors: List[Tuple[str, str]] = []
 
     for filepath in python_files:
         if has_spdx_header(filepath):
@@ -301,8 +316,8 @@ def add_header_to_py_files(
             files_to_modify.append(filepath)
         else:
             try:
-                with open(filepath, "r", encoding="utf-8") as file_handle:
-                    lines = file_handle.readlines()
+                # Read file with encoding detection
+                lines, encoding = read_file_with_encoding(Path(filepath))
 
                 # Check for shebang line
                 shebang = ""
@@ -316,17 +331,27 @@ def add_header_to_py_files(
                 new_lines.extend(header_to_add.splitlines(keepends=True))
                 new_lines.extend(lines)
 
-                # Write back to file
-                with open(filepath, "w", encoding="utf-8") as file_handle:
-                    file_handle.writelines(new_lines)
+                # Write back to file with same encoding
+                write_file_with_encoding(Path(filepath), new_lines, encoding)
                 print(f"✓ Added header to: {filepath}")
                 files_to_modify.append(filepath)
 
-            except OSError as exc:
-                print(f"✗ Error processing file '{filepath}': {exc}")
+            except EncodingError as exc:
+                error_msg = f"Encoding error: {exc.reason}"
+                errors.append((filepath, error_msg))
+                print(f"✗ {filepath}: {error_msg}")
+
+            except (OSError, PermissionError) as exc:
+                error_msg = str(exc)
+                errors.append((filepath, error_msg))
+                print(f"✗ Error processing '{filepath}': {error_msg}")
 
     if dry_run and files_to_modify:
         print(f"\nWould modify {len(files_to_modify)} files")
+
+    if errors:
+        print(f"\n⚠ Encountered {len(errors)} errors during processing")
+        print("Run with --verbose for more details")
 
 
 def change_header_in_py_files(
