@@ -16,8 +16,10 @@ import configparser
 import datetime
 import os
 import re
+import shutil
+import tempfile
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 try:
     import tomllib
@@ -230,3 +232,209 @@ def create_header(
         header = header.rstrip("\n") + "\n\n"
 
     return header
+
+
+class FileProcessor:
+    """Single-pass file processor for SPDX headers with atomic writes.
+
+    This class optimizes file I/O by:
+    1. Reading the file only once
+    2. Parsing structure (shebang, header, content) in memory
+    3. Allowing multiple operations without re-reading
+    4. Writing atomically to prevent corruption
+
+    Example:
+        processor = FileProcessor(filepath)
+        processor.load()
+        if not processor.has_header():
+            processor.add_header(new_header)
+            processor.save()
+    """
+
+    def __init__(self, filepath: PathLike):
+        """Initialize the file processor.
+
+        Args:
+            filepath: Path to the Python file to process
+        """
+        self.filepath = Path(filepath)
+        self.lines: List[str] = []
+        self.shebang: Optional[str] = None
+        self.header: List[str] = []
+        self.content: List[str] = []
+        self._loaded = False
+        self._modified = False
+
+    def load(self) -> None:
+        """Load and parse the file structure.
+
+        Reads the file once and parses it into:
+        - shebang (if present)
+        - SPDX header (if present)
+        - content (rest of the file)
+        """
+        if self._loaded:
+            return
+
+        try:
+            with open(self.filepath, "r", encoding="utf-8") as f:
+                self.lines = f.readlines()
+        except OSError as exc:
+            raise OSError(f"Failed to read {self.filepath}: {exc}") from exc
+
+        self._parse_structure()
+        self._loaded = True
+
+    def _parse_structure(self) -> None:
+        """Parse file structure into shebang, header, and content."""
+        if not self.lines:
+            return
+
+        lines = self.lines.copy()
+
+        # Extract shebang
+        if lines and lines[0].startswith("#!"):
+            self.shebang = lines.pop(0)
+
+        # Extract SPDX header
+        header_lines = []
+        in_header = False
+
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+
+            # Check if this is part of the header
+            if stripped.startswith("#"):
+                if "SPDX" in line:
+                    in_header = True
+                if in_header:
+                    header_lines.append(line)
+                else:
+                    # Comment before SPDX header, not part of header
+                    break
+            elif stripped == "":
+                # Blank line - include if we're in header
+                if in_header:
+                    header_lines.append(line)
+                elif header_lines:
+                    # Blank line after header, stop
+                    break
+            else:
+                # Non-comment, non-blank line - header ends
+                break
+
+        if header_lines:
+            self.header = header_lines
+            self.content = lines[len(header_lines) :]
+        else:
+            self.content = lines
+
+    def has_header(self) -> bool:
+        """Check if file has an SPDX header.
+
+        Returns:
+            True if SPDX header is present, False otherwise
+        """
+        if not self._loaded:
+            self.load()
+        return bool(self.header)
+
+    def add_header(self, new_header: str) -> None:
+        """Add or replace SPDX header.
+
+        Args:
+            new_header: The header text to add (should include newlines)
+        """
+        if not self._loaded:
+            self.load()
+
+        self.header = new_header.splitlines(keepends=True)
+        self._modified = True
+
+    def remove_header(self) -> None:
+        """Remove the SPDX header."""
+        if not self._loaded:
+            self.load()
+
+        if self.header:
+            self.header = []
+            self._modified = True
+
+    def get_content(self) -> str:
+        """Get the complete file content as a string.
+
+        Returns:
+            The complete file content with shebang, header, and content
+        """
+        if not self._loaded:
+            self.load()
+
+        result = []
+        if self.shebang:
+            result.append(self.shebang)
+        result.extend(self.header)
+        result.extend(self.content)
+
+        return "".join(result)
+
+    def save(self, force: bool = False) -> None:
+        """Save the file with atomic write operation.
+
+        Uses a temporary file and atomic move to prevent corruption.
+        Preserves file permissions.
+
+        Args:
+            force: If True, save even if not modified
+
+        Raises:
+            OSError: If file operations fail
+        """
+        if not self._loaded:
+            return
+
+        if not self._modified and not force:
+            return
+
+        # Build final content
+        result = []
+        if self.shebang:
+            result.append(self.shebang)
+        result.extend(self.header)
+        result.extend(self.content)
+
+        # Atomic write using temporary file
+        temp_fd, temp_path = tempfile.mkstemp(
+            dir=self.filepath.parent,
+            prefix=f".{self.filepath.name}.",
+            suffix=".tmp",
+        )
+
+        try:
+            # Write to temporary file
+            with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
+                f.writelines(result)
+
+            # Preserve permissions if original file exists
+            if self.filepath.exists():
+                shutil.copystat(self.filepath, temp_path)
+
+            # Atomic move
+            shutil.move(temp_path, self.filepath)
+            self._modified = False
+
+        except Exception:
+            # Clean up temp file on error
+            if os.path.exists(temp_path):
+                try:
+                    os.unlink(temp_path)
+                except OSError:
+                    pass
+            raise
+
+    def is_modified(self) -> bool:
+        """Check if the file has been modified.
+
+        Returns:
+            True if modifications have been made, False otherwise
+        """
+        return self._modified
