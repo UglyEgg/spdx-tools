@@ -330,3 +330,73 @@ class TestEncodingEdgeCases:
         
         lines, encoding = read_file_with_encoding(temp_file)
         assert len(lines[0]) > 100000
+
+    def test_detect_encoding_with_chardet_available(self, temp_file, monkeypatch):
+        """Test encoding detection when chardet is available."""
+        # Create a file with specific encoding
+        content = "Café résumé"
+        temp_file.write_bytes(content.encode("latin-1"))
+        
+        # Mock chardet to return high confidence
+        class MockChardet:
+            @staticmethod
+            def detect(data):
+                return {"encoding": "latin-1", "confidence": 0.9}
+        
+        monkeypatch.setattr("spdx_headers.encoding.chardet", MockChardet(), raising=False)
+        
+        # Should use chardet result
+        encoding = detect_encoding(temp_file)
+        assert isinstance(encoding, str)
+
+    def test_detect_encoding_with_chardet_low_confidence(self, temp_file, monkeypatch):
+        """Test encoding detection when chardet has low confidence."""
+        content = "Hello world"
+        temp_file.write_text(content, encoding="utf-8")
+        
+        # Mock chardet to return low confidence
+        class MockChardet:
+            @staticmethod
+            def detect(data):
+                return {"encoding": "ascii", "confidence": 0.5}
+        
+        monkeypatch.setattr("spdx_headers.encoding.chardet", MockChardet(), raising=False)
+        
+        # Should fall back to trying encodings
+        encoding = detect_encoding(temp_file)
+        assert encoding in DEFAULT_ENCODINGS
+
+    def test_write_file_with_encoding_error(self, temp_file):
+        """Test write_file_with_encoding with encoding error."""
+        # Try to write content that can't be encoded in ASCII
+        lines = ["Hello 世界\n"]
+        
+        with pytest.raises(EncodingError):
+            write_file_with_encoding(temp_file, lines, encoding="ascii")
+
+    def test_get_encoding_info_with_chardet(self, temp_file, monkeypatch):
+        """Test get_encoding_info when chardet is available."""
+        content = "Hello world"
+        temp_file.write_text(content, encoding="utf-8")
+        
+        # Mock chardet
+        class MockChardet:
+            @staticmethod
+            def detect(data):
+                return {"encoding": "utf-8", "confidence": 0.95}
+        
+        monkeypatch.setattr("spdx_headers.encoding.chardet", MockChardet(), raising=False)
+        
+        info = get_encoding_info(temp_file)
+        assert info["is_text"] is True
+        assert isinstance(info["encoding"], str)
+
+    def test_get_encoding_info_error_handling(self, temp_file):
+        """Test get_encoding_info handles errors gracefully."""
+        # Create a file that might cause issues
+        temp_file.write_bytes(b"\xff\xfe\xfd\xfc")
+        
+        info = get_encoding_info(temp_file)
+        # Should return default values on error
+        assert isinstance(info, dict)
+        assert "encoding" in info
