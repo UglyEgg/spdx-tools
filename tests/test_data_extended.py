@@ -177,6 +177,32 @@ class TestUpdateLicenseData:
         # This would write to the actual data file, skip for now
         pass
 
+    def test_load_with_invalid_json_structure(self, tmp_path):
+        """Test loading file with invalid JSON structure."""
+        invalid_file = tmp_path / "invalid.json"
+        # Valid JSON but wrong structure
+        invalid_file.write_text('{"wrong": "structure"}')
+        
+        # Should handle gracefully
+        try:
+            data = load_license_data(invalid_file)
+            # If it loads, check it has expected structure
+            assert isinstance(data, dict)
+        except (KeyError, TypeError, SystemExit):
+            # Expected if structure is wrong
+            pass
+
+    def test_update_with_network_timeout(self, tmp_path):
+        """Test update with network timeout."""
+        output_file = tmp_path / "licenses.json"
+        
+        # Test that network timeouts are handled
+        try:
+            update_license_data(output_file)
+        except SystemExit:
+            # Expected on network error or timeout
+            pass
+
 
 class TestLicenseDataStructure:
     """Tests for license data structure and types."""

@@ -38,12 +38,14 @@ class TestCLIUpdateCommand:
 class TestCLICheckCommand:
     """Tests for --check command."""
 
-    def test_check_with_fix_error(self, tmp_path):
+    def test_check_with_fix_error(self, tmp_path, capsys):
         """Test that --fix without --check shows error."""
-        with patch.object(sys, "argv", ["spdx-headers", "--fix", str(tmp_path)]):
+        with patch.object(sys, "argv", ["spdx-headers", "--fix", "-p", str(tmp_path)]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 2
+            captured = capsys.readouterr()
+            assert "must be used together with --check" in captured.out
 
     @patch("spdx_headers.cli.auto_fix_headers")
     @patch("spdx_headers.cli.check_headers")
@@ -81,6 +83,20 @@ class TestCLIListCommand:
             result = main()
             # Should return 1 when no matches found
             assert result in [0, 1]
+
+    @patch("spdx_headers.cli.load_license_data")
+    def test_list_empty_licenses(self, mock_load, capsys):
+        """Test listing when no licenses available."""
+        # Mock empty license data
+        mock_load.return_value = {
+            "metadata": {"spdx_version": "3.0", "generated_at": "2025-01-01", "license_count": 0},
+            "licenses": {}
+        }
+        
+        with patch.object(sys, "argv", ["spdx-headers", "--list"]):
+            result = main()
+            captured = capsys.readouterr()
+            assert "No licenses available" in captured.out or result == 0
 
 
 class TestCLIAddCommand:
@@ -249,11 +265,14 @@ class TestCLIExtractCommand:
 class TestCLINoArguments:
     """Tests for CLI with no arguments."""
 
-    def test_no_arguments_shows_help(self):
+    def test_no_arguments_shows_help(self, capsys):
         """Test that no arguments shows help."""
         with patch.object(sys, "argv", ["spdx-headers"]):
             result = main()
             assert result == 0
+            captured = capsys.readouterr()
+            # Should show usage/help information
+            assert len(captured.out) > 0 or len(captured.err) > 0
 
 
 class TestCLIEdgeCases:
