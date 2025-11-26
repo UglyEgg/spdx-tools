@@ -5,7 +5,6 @@
 Tests for encoding detection and handling.
 """
 
-from pathlib import Path
 
 import pytest
 
@@ -34,7 +33,7 @@ class TestDetectEncoding:
         """Test detecting UTF-8 encoding."""
         content = "Hello, World! 你好世界"
         temp_file.write_text(content, encoding="utf-8")
-        
+
         encoding = detect_encoding(temp_file)
         assert encoding in ["utf-8", "utf-8-sig"]
 
@@ -42,7 +41,7 @@ class TestDetectEncoding:
         """Test detecting Latin-1 encoding."""
         content = "Café résumé"
         temp_file.write_bytes(content.encode("latin-1"))
-        
+
         encoding = detect_encoding(temp_file)
         # Normalize to lowercase for comparison
         assert encoding.lower() in [e.lower() for e in DEFAULT_ENCODINGS]
@@ -51,7 +50,7 @@ class TestDetectEncoding:
         """Test detecting ASCII encoding."""
         content = "Simple ASCII text"
         temp_file.write_text(content, encoding="ascii")
-        
+
         encoding = detect_encoding(temp_file)
         assert encoding in DEFAULT_ENCODINGS
 
@@ -59,7 +58,7 @@ class TestDetectEncoding:
         """Test detecting UTF-8 with BOM."""
         content = "Hello, World!"
         temp_file.write_text(content, encoding="utf-8-sig")
-        
+
         encoding = detect_encoding(temp_file)
         # Normalize to lowercase for comparison
         assert encoding.lower() in ["utf-8", "utf-8-sig"]
@@ -68,7 +67,7 @@ class TestDetectEncoding:
         """Test that binary files raise EncodingError."""
         # Write binary data that can't be decoded
         temp_file.write_bytes(b"\x00\x01\x02\x03\xff\xfe\xfd")
-        
+
         # Binary files should either raise EncodingError or return an encoding
         try:
             encoding = detect_encoding(temp_file)
@@ -83,7 +82,7 @@ class TestDetectEncoding:
         """Test detect_encoding with custom sample size."""
         content = "A" * 20000  # Large file
         temp_file.write_text(content, encoding="utf-8")
-        
+
         encoding = detect_encoding(temp_file, sample_size=1000)
         assert encoding in DEFAULT_ENCODINGS
 
@@ -95,7 +94,7 @@ class TestReadFileWithEncoding:
         """Test reading UTF-8 file."""
         content = "Line 1\nLine 2\nLine 3\n"
         temp_file.write_text(content, encoding="utf-8")
-        
+
         lines, encoding = read_file_with_encoding(temp_file)
         assert len(lines) == 3
         # ASCII is a subset of UTF-8, so accept both
@@ -106,7 +105,7 @@ class TestReadFileWithEncoding:
         """Test reading with explicit encoding."""
         content = "Café résumé"
         temp_file.write_bytes(content.encode("latin-1"))
-        
+
         lines, encoding = read_file_with_encoding(temp_file, encoding="latin-1")
         assert encoding == "latin-1"
         assert "Café" in lines[0]
@@ -115,7 +114,7 @@ class TestReadFileWithEncoding:
         """Test reading with auto-detection."""
         content = "Hello, World!\n"
         temp_file.write_text(content, encoding="utf-8")
-        
+
         lines, encoding = read_file_with_encoding(temp_file, encoding=None)
         assert len(lines) == 1
         assert encoding in DEFAULT_ENCODINGS
@@ -124,16 +123,16 @@ class TestReadFileWithEncoding:
         """Test reading with wrong encoding raises error."""
         content = "你好世界"
         temp_file.write_text(content, encoding="utf-8")
-        
+
         with pytest.raises(EncodingError) as exc_info:
             read_file_with_encoding(temp_file, encoding="ascii")
-        
+
         assert "ascii" in str(exc_info.value)
 
     def test_read_nonexistent_file(self, tmp_path):
         """Test reading non-existent file."""
         nonexistent = tmp_path / "does_not_exist.txt"
-        
+
         with pytest.raises(FileNotFoundError):
             read_file_with_encoding(nonexistent)
 
@@ -145,7 +144,7 @@ class TestWriteFileWithEncoding:
         """Test writing UTF-8 file."""
         lines = ["Line 1\n", "Line 2\n", "Line 3\n"]
         write_file_with_encoding(temp_file, lines, encoding="utf-8")
-        
+
         content = temp_file.read_text(encoding="utf-8")
         assert content == "Line 1\nLine 2\nLine 3\n"
 
@@ -153,7 +152,7 @@ class TestWriteFileWithEncoding:
         """Test writing Latin-1 file."""
         lines = ["Café\n", "résumé\n"]
         write_file_with_encoding(temp_file, lines, encoding="latin-1")
-        
+
         content = temp_file.read_text(encoding="latin-1")
         assert "Café" in content
 
@@ -161,7 +160,7 @@ class TestWriteFileWithEncoding:
         """Test writing with BOM preservation."""
         lines = ["Hello\n"]
         write_file_with_encoding(temp_file, lines, encoding="utf-8", preserve_bom=True)
-        
+
         # Check for BOM
         raw = temp_file.read_bytes()
         assert raw.startswith(b"\xef\xbb\xbf")
@@ -170,7 +169,7 @@ class TestWriteFileWithEncoding:
         """Test writing without BOM."""
         lines = ["Hello\n"]
         write_file_with_encoding(temp_file, lines, encoding="utf-8", preserve_bom=False)
-        
+
         # Check no BOM
         raw = temp_file.read_bytes()
         assert not raw.startswith(b"\xef\xbb\xbf")
@@ -178,7 +177,7 @@ class TestWriteFileWithEncoding:
     def test_write_invalid_encoding(self, temp_file):
         """Test writing with invalid encoding."""
         lines = ["Hello\n"]
-        
+
         with pytest.raises(EncodingError):
             write_file_with_encoding(temp_file, lines, encoding="invalid-encoding")
 
@@ -258,7 +257,7 @@ class TestGetEncodingInfo:
     def test_get_info_utf8(self, temp_file):
         """Test getting info for UTF-8 file."""
         temp_file.write_text("Hello, World!", encoding="utf-8")
-        
+
         info = get_encoding_info(temp_file)
         assert info["is_text"] is True
         assert info["encoding"] in ["utf-8", "utf-8-sig", "ascii"]
@@ -267,7 +266,7 @@ class TestGetEncodingInfo:
     def test_get_info_utf8_with_bom(self, temp_file):
         """Test getting info for UTF-8 file with BOM."""
         temp_file.write_text("Hello, World!", encoding="utf-8-sig")
-        
+
         info = get_encoding_info(temp_file)
         assert info["is_text"] is True
         assert info["has_bom"] is True
@@ -277,7 +276,7 @@ class TestGetEncodingInfo:
     def test_get_info_binary(self, temp_file):
         """Test getting info for binary file."""
         temp_file.write_bytes(b"\x00\x01\x02\x03")
-        
+
         info = get_encoding_info(temp_file)
         assert info["is_text"] is False
         assert info["encoding"] == "unknown"
@@ -285,7 +284,7 @@ class TestGetEncodingInfo:
     def test_get_info_latin1(self, temp_file):
         """Test getting info for Latin-1 file."""
         temp_file.write_bytes("Café résumé".encode("latin-1"))
-        
+
         info = get_encoding_info(temp_file)
         assert info["is_text"] is True
         assert isinstance(info["encoding"], str)
@@ -294,7 +293,7 @@ class TestGetEncodingInfo:
     def test_get_info_empty_file(self, temp_file):
         """Test getting info for empty file."""
         temp_file.write_text("")
-        
+
         info = get_encoding_info(temp_file)
         assert info["is_text"] is True
 
@@ -306,7 +305,7 @@ class TestEncodingEdgeCases:
         """Test handling mixed line endings."""
         content = "Line 1\nLine 2\r\nLine 3\r"
         temp_file.write_text(content, encoding="utf-8")
-        
+
         lines, encoding = read_file_with_encoding(temp_file)
         assert len(lines) >= 3
 
@@ -314,7 +313,7 @@ class TestEncodingEdgeCases:
         """Test handling various Unicode characters."""
         content = "Hello 世界 🌍 Привет مرحبا"
         temp_file.write_text(content, encoding="utf-8")
-        
+
         lines, encoding = read_file_with_encoding(temp_file)
         assert "世界" in lines[0]
         assert "🌍" in lines[0]
@@ -322,7 +321,7 @@ class TestEncodingEdgeCases:
     def test_empty_file_encoding(self, temp_file):
         """Test encoding detection on empty file."""
         temp_file.write_text("", encoding="utf-8")
-        
+
         encoding = detect_encoding(temp_file)
         assert encoding in DEFAULT_ENCODINGS
 
@@ -330,7 +329,7 @@ class TestEncodingEdgeCases:
         """Test handling very long lines."""
         content = "A" * 100000 + "\n"
         temp_file.write_text(content, encoding="utf-8")
-        
+
         lines, encoding = read_file_with_encoding(temp_file)
         assert len(lines[0]) > 100000
 
@@ -339,15 +338,17 @@ class TestEncodingEdgeCases:
         # Create a file with specific encoding
         content = "Café résumé"
         temp_file.write_bytes(content.encode("latin-1"))
-        
+
         # Mock chardet to return high confidence
         class MockChardet:
             @staticmethod
             def detect(data):
                 return {"encoding": "latin-1", "confidence": 0.9}
-        
-        monkeypatch.setattr("spdx_headers.encoding.chardet", MockChardet(), raising=False)
-        
+
+        monkeypatch.setattr(
+            "spdx_headers.encoding.chardet", MockChardet(), raising=False
+        )
+
         # Should use chardet result
         encoding = detect_encoding(temp_file)
         assert isinstance(encoding, str)
@@ -356,15 +357,17 @@ class TestEncodingEdgeCases:
         """Test encoding detection when chardet has low confidence."""
         content = "Hello world"
         temp_file.write_text(content, encoding="utf-8")
-        
+
         # Mock chardet to return low confidence
         class MockChardet:
             @staticmethod
             def detect(data):
                 return {"encoding": "ascii", "confidence": 0.5}
-        
-        monkeypatch.setattr("spdx_headers.encoding.chardet", MockChardet(), raising=False)
-        
+
+        monkeypatch.setattr(
+            "spdx_headers.encoding.chardet", MockChardet(), raising=False
+        )
+
         # Should fall back to trying encodings
         encoding = detect_encoding(temp_file)
         assert encoding in DEFAULT_ENCODINGS
@@ -373,7 +376,7 @@ class TestEncodingEdgeCases:
         """Test write_file_with_encoding with encoding error."""
         # Try to write content that can't be encoded in ASCII
         lines = ["Hello 世界\n"]
-        
+
         with pytest.raises(EncodingError):
             write_file_with_encoding(temp_file, lines, encoding="ascii")
 
@@ -381,15 +384,17 @@ class TestEncodingEdgeCases:
         """Test get_encoding_info when chardet is available."""
         content = "Hello world"
         temp_file.write_text(content, encoding="utf-8")
-        
+
         # Mock chardet
         class MockChardet:
             @staticmethod
             def detect(data):
                 return {"encoding": "utf-8", "confidence": 0.95}
-        
-        monkeypatch.setattr("spdx_headers.encoding.chardet", MockChardet(), raising=False)
-        
+
+        monkeypatch.setattr(
+            "spdx_headers.encoding.chardet", MockChardet(), raising=False
+        )
+
         info = get_encoding_info(temp_file)
         assert info["is_text"] is True
         assert isinstance(info["encoding"], str)
@@ -398,7 +403,7 @@ class TestEncodingEdgeCases:
         """Test get_encoding_info handles errors gracefully."""
         # Create a file that might cause issues
         temp_file.write_bytes(b"\xff\xfe\xfd\xfc")
-        
+
         info = get_encoding_info(temp_file)
         # Should return default values on error
         assert isinstance(info, dict)

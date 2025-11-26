@@ -7,8 +7,6 @@ Tests for custom exception classes.
 
 from pathlib import Path
 
-import pytest
-
 from spdx_headers.exceptions import (
     ConcurrentModificationError,
     DirectoryNotFoundError,
@@ -87,9 +85,7 @@ class TestEncodingError:
 
     def test_encoding_error_with_suggestion(self):
         """Test EncodingError with custom suggestion."""
-        error = EncodingError(
-            "test.py", ["utf-8"], "Use iconv to convert the file"
-        )
+        error = EncodingError("test.py", ["utf-8"], "Use iconv to convert the file")
         assert "Use iconv to convert the file" in str(error)
 
     def test_encoding_error_default_suggestion(self):
@@ -238,7 +234,9 @@ class TestFindSimilarLicenses:
         licenses = ["MIT", "Apache-2.0", "GPL-3.0"]
         results = find_similar_licenses("mit", licenses)
         # Should find MIT or similar matches
-        assert len(results) >= 0  # May or may not find exact match depending on algorithm
+        assert (
+            len(results) >= 0
+        )  # May or may not find exact match depending on algorithm
 
     def test_find_similar_licenses_limit(self):
         """Test that results are limited to 5."""
@@ -263,7 +261,7 @@ class TestFindSimilarLicenses:
         """Test fallback matching when difflib is not available."""
         # Test the fallback path by using a pattern that triggers substring matching
         licenses = ["MIT-License", "Apache-2.0-License", "GPL-3.0-License"]
-        
+
         # The fallback uses case-insensitive substring matching
         # Test with a partial match
         results = find_similar_licenses("apache", licenses)
