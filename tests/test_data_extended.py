@@ -6,14 +6,12 @@ Extended tests for data module to improve coverage.
 """
 
 import json
-from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
 from spdx_headers.data import (
     DEFAULT_DATA_FILE,
-    LicenseData,
     load_license_data,
     update_license_data,
 )
@@ -182,7 +180,7 @@ class TestUpdateLicenseData:
         invalid_file = tmp_path / "invalid.json"
         # Valid JSON but wrong structure
         invalid_file.write_text('{"wrong": "structure"}')
-        
+
         # Should handle gracefully
         try:
             data = load_license_data(invalid_file)
@@ -195,7 +193,7 @@ class TestUpdateLicenseData:
     def test_update_with_network_timeout(self, tmp_path):
         """Test update with network timeout."""
         output_file = tmp_path / "licenses.json"
-        
+
         # Test that network timeouts are handled
         try:
             update_license_data(output_file)

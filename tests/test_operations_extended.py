@@ -5,14 +5,8 @@
 Extended tests for operations module to improve coverage.
 """
 
-import os
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
-import pytest
-
-from spdx_headers.core import create_header
 from spdx_headers.data import LicenseEntry, load_license_data
 from spdx_headers.operations import (
     _build_license_placeholder,
@@ -56,8 +50,9 @@ class TestResolveLicenseText:
     def test_resolve_with_text_in_entry(self):
         """Test resolving when text is in license entry."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
-        
+
         # Get actual MIT license entry
         if "MIT" in license_data["licenses"]:
             entry = license_data["licenses"]["MIT"]
@@ -79,8 +74,9 @@ class TestResolveLicenseText:
     def test_resolve_with_requests_success(self):
         """Test resolving with successful HTTP request."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
-        
+
         # Test with a real license entry
         if "MIT" in license_data["licenses"]:
             entry = license_data["licenses"]["MIT"]
@@ -91,7 +87,13 @@ class TestResolveLicenseText:
     def test_resolve_with_requests_failure(self):
         """Test resolving with failed HTTP request."""
         # Create an entry without text
-        entry = LicenseEntry(name="MIT License", deprecated=False, osi_approved=True, fsf_libre=True, header_template="# MIT\n")
+        entry = LicenseEntry(
+            name="MIT License",
+            deprecated=False,
+            osi_approved=True,
+            fsf_libre=True,
+            header_template="# MIT\n",
+        )
         result = _resolve_license_text("NONEXISTENT-LICENSE", entry)
         # Should return None when it can't resolve
         assert result is None or isinstance(result, str)
@@ -217,23 +219,40 @@ class TestAutoFixHeaders:
     def test_auto_fix_no_files(self, tmp_path):
         """Test auto fix with no files."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
         # Should not raise error
-        auto_fix_headers(tmp_path, license_data, "2025", "Test User", "test@example.com", dry_run=True)
+        auto_fix_headers(
+            tmp_path,
+            license_data,
+            "2025",
+            "Test User",
+            "test@example.com",
+            dry_run=True,
+        )
 
     def test_auto_fix_with_missing_headers(self, tmp_path):
         """Test auto fix with files missing headers."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
         file1 = tmp_path / "test.py"
         file1.write_text("print('hello')\n")
 
         # Should not crash
-        auto_fix_headers(tmp_path, license_data, "2025", "Test User", "test@example.com", dry_run=True)
+        auto_fix_headers(
+            tmp_path,
+            license_data,
+            "2025",
+            "Test User",
+            "test@example.com",
+            dry_run=True,
+        )
 
     def test_auto_fix_with_existing_headers(self, tmp_path):
         """Test auto fix with existing headers."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
         file1 = tmp_path / "test.py"
         file1.write_text(
@@ -243,7 +262,14 @@ class TestAutoFixHeaders:
         )
 
         # Should not crash
-        auto_fix_headers(tmp_path, license_data, "2025", "Test User", "test@example.com", dry_run=True)
+        auto_fix_headers(
+            tmp_path,
+            license_data,
+            "2025",
+            "Test User",
+            "test@example.com",
+            dry_run=True,
+        )
 
 
 class TestVerifySPDXHeaders:
@@ -290,6 +316,7 @@ class TestAddHeaderToPyFiles:
     def test_add_header_basic(self, tmp_path):
         """Test adding header to Python files."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
         file1 = tmp_path / "test.py"
         file1.write_text("print('hello')\n")
@@ -311,6 +338,7 @@ class TestAddHeaderToPyFiles:
     def test_add_header_with_email(self, tmp_path):
         """Test adding header with email."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
         file1 = tmp_path / "test.py"
         file1.write_text("print('hello')\n")
@@ -328,6 +356,7 @@ class TestAddHeaderToPyFiles:
     def test_add_header_skip_existing(self, tmp_path):
         """Test skipping files with existing headers."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
         file1 = tmp_path / "test.py"
         file1.write_text(
@@ -353,6 +382,7 @@ class TestChangeHeaderInPyFiles:
     def test_change_header_basic(self, tmp_path):
         """Test changing header in Python files."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
         file1 = tmp_path / "test.py"
         file1.write_text(
@@ -374,6 +404,7 @@ class TestChangeHeaderInPyFiles:
     def test_change_header_no_existing(self, tmp_path):
         """Test changing header when no header exists."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
         file1 = tmp_path / "test.py"
         file1.write_text("print('hello')\n")
@@ -486,6 +517,7 @@ class TestOperationsEdgeCases:
     def test_operations_with_readonly_files(self, tmp_path):
         """Test operations with read-only files."""
         from spdx_headers.data import load_license_data
+
         license_data = load_license_data()
         file1 = tmp_path / "test.py"
         file1.write_text("print('hello')\n")

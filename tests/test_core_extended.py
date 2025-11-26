@@ -5,19 +5,17 @@
 Extended tests for core module to improve coverage.
 """
 
-from pathlib import Path
 
 import pytest
 
 from spdx_headers.core import (
     create_header,
     extract_spdx_header,
-    has_spdx_header,
-    remove_spdx_header,
-    _extract_spdx_header_from_lines,
     find_python_files,
     find_src_directory,
     get_copyright_info,
+    has_spdx_header,
+    remove_spdx_header,
 )
 from spdx_headers.data import load_license_data
 
@@ -116,10 +114,7 @@ class TestHasSPDXHeader:
     def test_has_header_false(self, tmp_path):
         """Test detecting missing header."""
         file = tmp_path / "test.py"
-        file.write_text(
-            "print('hello')\n"
-            "print('world')\n"
-        )
+        file.write_text("print('hello')\n" "print('world')\n")
         assert has_spdx_header(file) is False
 
     def test_has_header_empty_file(self, tmp_path):
@@ -148,10 +143,7 @@ class TestExtractSPDXHeader:
     def test_extract_header_no_header(self, tmp_path):
         """Test extracting from file without header."""
         file = tmp_path / "test.py"
-        file.write_text(
-            "print('hello')\n"
-            "print('world')\n"
-        )
+        file.write_text("print('hello')\n" "print('world')\n")
         header = extract_spdx_header(file)
         assert header == []
 
@@ -177,10 +169,7 @@ class TestRemoveSPDXHeader:
     def test_remove_header_no_header(self, tmp_path):
         """Test removing header when none exists."""
         file = tmp_path / "test.py"
-        file.write_text(
-            "print('hello')\n"
-            "print('world')\n"
-        )
+        file.write_text("print('hello')\n" "print('world')\n")
         lines, had_header = remove_spdx_header(file)
         assert had_header is False
 

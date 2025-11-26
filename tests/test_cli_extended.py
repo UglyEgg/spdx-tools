@@ -6,8 +6,7 @@ Extended tests for CLI module to improve coverage.
 """
 
 import sys
-from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -56,7 +55,7 @@ class TestCLICheckCommand:
         with patch.object(
             sys, "argv", ["spdx-headers", "--check", "--fix", "-p", str(tmp_path)]
         ):
-            result = main()
+            main()
             mock_fix.assert_called_once()
 
 
@@ -89,10 +88,14 @@ class TestCLIListCommand:
         """Test listing when no licenses available."""
         # Mock empty license data
         mock_load.return_value = {
-            "metadata": {"spdx_version": "3.0", "generated_at": "2025-01-01", "license_count": 0},
-            "licenses": {}
+            "metadata": {
+                "spdx_version": "3.0",
+                "generated_at": "2025-01-01",
+                "license_count": 0,
+            },
+            "licenses": {},
         }
-        
+
         with patch.object(sys, "argv", ["spdx-headers", "--list"]):
             result = main()
             captured = capsys.readouterr()
@@ -234,7 +237,9 @@ class TestCLIVerifyCommand:
             "print('hello')\n"
         )
 
-        with patch.object(sys, "argv", ["spdx-headers", "--verify", "-p", str(tmp_path)]):
+        with patch.object(
+            sys, "argv", ["spdx-headers", "--verify", "-p", str(tmp_path)]
+        ):
             result = main()
             assert result == 0
 
@@ -247,7 +252,13 @@ class TestCLIExtractCommand:
         with patch.object(
             sys,
             "argv",
-            ["spdx-headers", "--extract", "nonexistent-license-xyz", "-p", str(tmp_path)],
+            [
+                "spdx-headers",
+                "--extract",
+                "nonexistent-license-xyz",
+                "-p",
+                str(tmp_path),
+            ],
         ):
             result = main()
             # Should return 1 when no matches
@@ -475,7 +486,9 @@ class TestCLIOutputFormatting:
         file1 = tmp_path / "test.py"
         file1.write_text("print('hello')\n")
 
-        with patch.object(sys, "argv", ["spdx-headers", "--check", "-p", str(tmp_path)]):
+        with patch.object(
+            sys, "argv", ["spdx-headers", "--check", "-p", str(tmp_path)]
+        ):
             main()
             captured = capsys.readouterr()
             # Should contain check results
