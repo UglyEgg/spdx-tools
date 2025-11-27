@@ -26,6 +26,14 @@ from .operations import (
 
 
 def main() -> int:
+    """Main entry point for the spdx-headers CLI tool.
+
+    Parses command-line arguments and executes the requested operation
+    for managing SPDX headers in Python source files.
+
+    Returns:
+        Exit code (0 for success, non-zero for errors)
+    """
     parser = argparse.ArgumentParser(
         description="Manage SPDX headers in Python source files.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,

@@ -280,7 +280,22 @@ def add_header_to_py_files(
     email: str,
     dry_run: bool = False,
 ) -> None:
-    """Add SPDX headers to Python files with improved error handling."""
+    """Add SPDX headers to Python files with improved error handling.
+
+    Args:
+        directory: Directory containing Python files to process
+        license_key: SPDX license identifier (e.g., 'MIT', 'Apache-2.0')
+        license_data: License database containing license information
+        year: Copyright year
+        name: Copyright holder name
+        email: Copyright holder email
+        dry_run: If True, show what would be done without making changes
+
+    Raises:
+        LicenseNotFoundError: If the license_key is not in the database
+        FileProcessingError: If header template is not available
+        EncodingError: If file encoding cannot be determined
+    """
     # Validate license exists
     if license_key not in license_data["licenses"]:
         # Find similar licenses

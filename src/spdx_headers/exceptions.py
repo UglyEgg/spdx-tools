@@ -34,6 +34,13 @@ class FileProcessingError(SPDXError):
         reason: str,
         suggestion: str | None = None,
     ):
+        """Initialize the FileProcessingError.
+
+        Args:
+            filepath: Path to the file that caused the error
+            reason: Description of what went wrong
+            suggestion: Optional suggestion for fixing the issue
+        """
         self.filepath = Path(filepath)
         self.reason = reason
         self.suggestion = suggestion
@@ -57,6 +64,13 @@ class EncodingError(FileProcessingError):
         attempted_encodings: list[str],
         suggestion: str | None = None,
     ):
+        """Initialize the EncodingError.
+
+        Args:
+            filepath: Path to the file with encoding issues
+            attempted_encodings: List of encodings that were tried
+            suggestion: Optional suggestion for fixing the issue
+        """
         self.attempted_encodings = attempted_encodings
 
         reason = f"Unable to decode file with encodings: {', '.join(attempted_encodings)}"
@@ -79,6 +93,12 @@ class LicenseNotFoundError(SPDXError):
     """
 
     def __init__(self, license_id: str, suggestions: list[str | None] = None):
+        """Initialize the LicenseNotFoundError.
+
+        Args:
+            license_id: The license identifier that was not found
+            suggestions: List of similar license identifiers
+        """
         self.license_id = license_id
         self.suggestions = suggestions or []
 
@@ -103,6 +123,11 @@ class DirectoryNotFoundError(SPDXError):
     """
 
     def __init__(self, directory: Path | str):
+        """Initialize the DirectoryNotFoundError.
+
+        Args:
+            directory: Path to the directory that was not found
+        """
         self.directory = Path(directory)
 
         message = f"Directory '{self.directory}' does not exist."
@@ -119,6 +144,11 @@ class NoFilesFoundError(SPDXError):
     """
 
     def __init__(self, directory: Path | str):
+        """Initialize the NoFilesFoundError.
+
+        Args:
+            directory: Path to the directory that was searched
+        """
         self.directory = Path(directory)
 
         message = f"No Python files found in '{self.directory}'."
@@ -134,6 +164,11 @@ class HeaderNotFoundError(FileProcessingError):
     """
 
     def __init__(self, filepath: Path | str):
+        """Initialize the HeaderNotFoundError.
+
+        Args:
+            filepath: Path to the file missing an SPDX header
+        """
         reason = "No SPDX header found"
         suggestion = "Use 'spdx-headers --add LICENSE' to add a header to this file."
 
@@ -149,6 +184,12 @@ class InvalidHeaderError(FileProcessingError):
     """
 
     def __init__(self, filepath: Path | str, details: str):
+        """Initialize the InvalidHeaderError.
+
+        Args:
+            filepath: Path to the file with invalid header
+            details: Details about what's wrong with the header
+        """
         self.details = details
 
         reason = f"Invalid SPDX header: {details}"
@@ -164,6 +205,11 @@ class ConcurrentModificationError(FileProcessingError):
     """
 
     def __init__(self, filepath: Path | str):
+        """Initialize the ConcurrentModificationError.
+
+        Args:
+            filepath: Path to the file that was concurrently modified
+        """
         reason = "File was modified by another process"
         suggestion = (
             "Try the operation again. If the problem persists, "
