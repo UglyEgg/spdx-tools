@@ -1,10 +1,5 @@
 {
-  "config": {
-    "default": true,
-    "MD013": false,
-    "MD024": false,
-    "MD033": false,
-    "MD041": false
-  },
-  "ignores": ["node_modules/**", ".git/**", "*.min.js", "*.min.css"]
+  "default": true,
+  "MD013": false,
+  "MD024": false
 }

@@ -29,7 +29,7 @@ LINT_COMMANDS := \
     $(RUN_DEV) $(RUFF) $(RUFF_ARGS) && \
     $(RUN_DEV) $(BLACK) $(BLACK_LINT_ARGS) && \
     $(RUN_DEV) $(ISORT) $(ISORT_LINT_ARGS) && \
-    $(RUN_DEV) $(PRE_COMMIT) run $(MARKDOWNLINT_HOOK) --all-files --config .markdownlint.json
+    $(RUN_DEV) $(PRE_COMMIT) run $(MARKDOWNLINT_HOOK) --all-files
 
 .PHONY: sync sync-dev build publish publish-test serve-docs update-spdx-data bump-version list-licenses verify-headers check-headers dev-setup quick-check release-check info update-deps lock ci-install ci-test ci-check show-outdated tree lint-markdown lint-markdown-summary
 
