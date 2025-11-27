@@ -6,8 +6,8 @@ Command-line interface for SPDX header management.
 """
 
 import argparse
-import os
 import sys
+from pathlib import Path
 
 from . import __version__
 from .core import find_src_directory, get_copyright_info
@@ -169,7 +169,7 @@ def main() -> int:
     license_data = load_license_data(args.data_file)
 
     # Use the specified repository path
-    repo_path = os.path.abspath(args.path)
+    repo_path = str(Path(args.path).resolve())
 
     # Get copyright information
     year, name, email = get_copyright_info(repo_path)
