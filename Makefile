@@ -15,7 +15,7 @@ CLEAN_ALL_EXTRA := .uv uv.lock
 TYPECHECK_PATHS := src
 PRE_COMMIT := pre_commit
 
-MARKDOWNLINT_HOOK := .markdownlint
+MARKDOWNLINT_HOOK := markdownlint-cli2
 
 # Indicate which template targets are overridden locally
 TEMPLATE_SKIP_install := 1
@@ -142,8 +142,8 @@ tree: ## Show project structure
 	tree -I '__pycache__|*.pyc|*.pyo|.git|.pytest_cache|.mypy_cache|*.egg-info|build|dist|.venv|.uv'
 
 # Custom markdown linting target
-lint-markdown: ## Run markdown linting with consolidated error reporting
-	@./scripts/lint-markdown.sh
+lint-markdown: ## Run markdown linting (formats: compact, grouped, detailed, summary)
+	@./scripts/lint-markdown.sh $(FORMAT)
 
-lint-markdown-summary: ## Run markdown linting with detailed file-by-file breakdown
-	@./scripts/lint-markdown-summary.sh
+lint-markdown-summary: ## Run markdown linting summary (formats: table, stats, tree, quick)
+	@./scripts/lint-markdown-summary.sh $(FORMAT)
