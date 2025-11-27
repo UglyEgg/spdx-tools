@@ -11,7 +11,6 @@ and suggestions for common issues.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional
 
 
 class SPDXError(Exception):
@@ -33,7 +32,7 @@ class FileProcessingError(SPDXError):
         self,
         filepath: Path | str,
         reason: str,
-        suggestion: Optional[str] = None,
+        suggestion: str | None = None,
     ):
         self.filepath = Path(filepath)
         self.reason = reason
@@ -55,8 +54,8 @@ class EncodingError(FileProcessingError):
     def __init__(
         self,
         filepath: Path | str,
-        attempted_encodings: List[str],
-        suggestion: Optional[str] = None,
+        attempted_encodings: list[str],
+        suggestion: str | None = None,
     ):
         self.attempted_encodings = attempted_encodings
 
@@ -81,7 +80,7 @@ class LicenseNotFoundError(SPDXError):
         suggestions: List of similar license identifiers
     """
 
-    def __init__(self, license_id: str, suggestions: Optional[List[str]] = None):
+    def __init__(self, license_id: str, suggestions: list[str | None] = None):
         self.license_id = license_id
         self.suggestions = suggestions or []
 
@@ -197,8 +196,8 @@ class PermissionError(FileProcessingError):
 
 
 def find_similar_licenses(
-    license_id: str, available_licenses: List[str], cutoff: float = 0.6
-) -> List[str]:
+    license_id: str, available_licenses: list[str], cutoff: float = 0.6
+) -> list[str]:
     """Find similar license identifiers using fuzzy matching.
 
     Args:

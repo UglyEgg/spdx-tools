@@ -16,7 +16,7 @@ import tempfile
 import textwrap
 import threading
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable
 from urllib.parse import quote_plus
 
 from .core import (
@@ -35,7 +35,7 @@ from .exceptions import (
     find_similar_licenses,
 )
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 OpenEditorCallback = Callable[[Path], None]
 
 
@@ -92,7 +92,7 @@ def _wrap_license_text(text: str, width: int = 79) -> str:
         stripped_lines = [line.strip() for line in buffer]
         paragraph_text = " ".join(stripped_lines)
 
-        wrapper_kwargs: Dict[str, Any] = {
+        wrapper_kwargs: dict[str, Any] = {
             "width": width,
             "break_long_words": False,
             "break_on_hyphens": False,
@@ -137,7 +137,7 @@ def _wrap_license_text(text: str, width: int = 79) -> str:
     return result
 
 
-def check_missing_headers(directory: PathLike, dry_run: bool = False) -> List[str]:
+def check_missing_headers(directory: PathLike, dry_run: bool = False) -> list[str]:
     """
     Check for Python files missing SPDX headers.
     Returns list of files without headers.
@@ -146,7 +146,7 @@ def check_missing_headers(directory: PathLike, dry_run: bool = False) -> List[st
         print(f"Error: The directory '{directory}' does not exist.")
         raise FileNotFoundError(directory)
 
-    missing_headers: List[str] = []
+    missing_headers: list[str] = []
     python_files = find_python_files(directory)
 
     for filepath in python_files:
@@ -158,8 +158,8 @@ def check_missing_headers(directory: PathLike, dry_run: bool = False) -> List[st
     return missing_headers
 
 
-def _collect_license_identifiers(directory: PathLike) -> List[Tuple[str, str]]:
-    identifiers: List[Tuple[str, str]] = []
+def _collect_license_identifiers(directory: PathLike) -> list[tuple[str, str]]:
+    identifiers: list[tuple[str, str]] = []
     for filepath in find_python_files(directory):
         if not has_spdx_header(filepath):
             continue
@@ -304,8 +304,8 @@ def add_header_to_py_files(
 
     python_files = find_python_files(directory)
 
-    files_to_modify: List[str] = []
-    errors: List[Tuple[str, str]] = []
+    files_to_modify: list[str] = []
+    errors: list[tuple[str, str]] = []
 
     for filepath in python_files:
         # Quick check without loading full file
@@ -326,7 +326,7 @@ def add_header_to_py_files(
                     shebang = lines.pop(0)
 
                 # Prepare new content
-                new_lines: List[str] = []
+                new_lines: list[str] = []
                 if shebang:
                     new_lines.append(shebang)
                 new_lines.extend(header_to_add.splitlines(keepends=True))
@@ -375,7 +375,7 @@ def change_header_in_py_files(
         return
     python_files = find_python_files(directory)
 
-    files_to_modify: List[str] = []
+    files_to_modify: list[str] = []
 
     for filepath in python_files:
         # Quick check without loading full file
@@ -410,7 +410,7 @@ def remove_header_from_py_files(directory: PathLike, dry_run: bool = False) -> N
     """Remove SPDX headers from Python files using single-pass processing."""
     python_files = find_python_files(directory)
 
-    files_to_modify: List[str] = []
+    files_to_modify: list[str] = []
 
     for filepath in python_files:
         # Quick check without loading full file
@@ -443,7 +443,7 @@ def remove_header_from_py_files(directory: PathLike, dry_run: bool = False) -> N
 
 def filter_licenses(
     license_data: LicenseData, keyword: str | None = None
-) -> List[Tuple[str, LicenseEntry]]:
+) -> list[tuple[str, LicenseEntry]]:
     """Return a sorted list of licenses optionally filtered by keyword."""
     sorted_licenses = sorted(license_data["licenses"].items(), key=lambda item: item[0])
 

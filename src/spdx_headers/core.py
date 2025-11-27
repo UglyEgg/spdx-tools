@@ -19,7 +19,6 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
 
 try:
     import tomllib
@@ -36,7 +35,7 @@ from .data import LicenseData
 from .data import load_license_data as _load_license_data
 from .data import update_license_data as _update_license_data
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 EXCLUDED_FILENAMES = {"_version.py"}
 CONFIG_FILENAME = ".spdx-headers.ini"
@@ -81,7 +80,7 @@ def find_src_directory(repo_path: PathLike) -> str:
     return str(base_path)
 
 
-def get_copyright_info(repo_path: PathLike) -> Tuple[str, str, str]:
+def get_copyright_info(repo_path: PathLike) -> tuple[str, str, str]:
     """Get copyright information from pyproject.toml if available."""
     copyright_year = str(datetime.date.today().year)
     copyright_name = "John Doe"
@@ -111,9 +110,9 @@ def get_copyright_info(repo_path: PathLike) -> Tuple[str, str, str]:
     return copyright_year, copyright_name, copyright_email
 
 
-def find_python_files(directory: PathLike) -> List[str]:
+def find_python_files(directory: PathLike) -> list[str]:
     """Find all Python files in the directory."""
-    python_files: List[str] = []
+    python_files: list[str] = []
     exclusions = _load_exclusions(directory)
     for root, _, files in os.walk(directory):
         for filename in files:
@@ -136,8 +135,8 @@ def has_spdx_header(filepath: PathLike) -> bool:
     return bool(LICENSE_PATTERN.search(content))
 
 
-def _extract_spdx_header_from_lines(lines: List[str]) -> List[str]:
-    header_candidates: List[str] = []
+def _extract_spdx_header_from_lines(lines: list[str]) -> list[str]:
+    header_candidates: list[str] = []
     spdx_found = False
 
     for index, line in enumerate(lines):
@@ -159,7 +158,7 @@ def _extract_spdx_header_from_lines(lines: List[str]) -> List[str]:
     return header_candidates if spdx_found else []
 
 
-def extract_spdx_header(filepath: PathLike) -> List[str]:
+def extract_spdx_header(filepath: PathLike) -> list[str]:
     """Extract the SPDX header from a file."""
     try:
         with open(filepath, "r", encoding="utf-8") as file_handle:
@@ -169,7 +168,7 @@ def extract_spdx_header(filepath: PathLike) -> List[str]:
         return []
 
 
-def remove_spdx_header(filepath: PathLike) -> Tuple[List[str], bool]:
+def remove_spdx_header(filepath: PathLike) -> tuple[list[str], bool]:
     """Remove SPDX header from file, return new lines and whether header was found."""
     try:
         with open(filepath, "r", encoding="utf-8") as file_handle:
@@ -184,7 +183,7 @@ def remove_spdx_header(filepath: PathLike) -> Tuple[List[str], bool]:
                     index = i
                     break
 
-            new_lines: List[str] = []
+            new_lines: list[str] = []
             prefix_end = 1 if (lines and lines[0].startswith("#!")) else 0
             new_lines.extend(lines[:prefix_end])
             new_lines.extend(lines[index + header_length :])
@@ -258,10 +257,10 @@ class FileProcessor:
             filepath: Path to the Python file to process
         """
         self.filepath = Path(filepath)
-        self.lines: List[str] = []
-        self.shebang: Optional[str] = None
-        self.header: List[str] = []
-        self.content: List[str] = []
+        self.lines: list[str] = []
+        self.shebang: str | None = None
+        self.header: list[str] = []
+        self.content: list[str] = []
         self._loaded = False
         self._modified = False
 

@@ -11,7 +11,6 @@ files with automatic encoding detection.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from .exceptions import EncodingError
 
@@ -81,8 +80,8 @@ def detect_encoding(filepath: Path, sample_size: int = 10000) -> str:
 
 
 def read_file_with_encoding(
-    filepath: Path, encoding: Optional[str] = None
-) -> Tuple[List[str], str]:
+    filepath: Path, encoding: str | None = None
+) -> tuple[list[str], str]:
     """Read a file with automatic encoding detection.
 
     Args:
@@ -118,7 +117,7 @@ def read_file_with_encoding(
 
 def write_file_with_encoding(
     filepath: Path,
-    lines: List[str],
+    lines: list[str],
     encoding: str = "utf-8",
     preserve_bom: bool = False,
 ) -> None:
