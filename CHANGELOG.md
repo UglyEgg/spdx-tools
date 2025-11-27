@@ -16,6 +16,28 @@ All notable changes to this project are documented in this file. The format foll
 
 -
 
+## [1.0.2] - 2024-11-27
+
+### Added
+
+- Comprehensive test suite with 241 tests achieving 81% code coverage
+- PyPI release checklist and documentation guides
+- Examples directory with benchmark scripts
+
+### Changed
+
+- Modernized path handling to use pathlib throughout codebase
+- Updated dependencies: removed unused beautifulsoup4 and tomli, added chardet
+- Improved code quality to 99.5% Python style guide compliance
+- Enhanced docstrings for better API documentation
+- Streamlined Makefile by removing rarely-used convenience targets
+
+### Fixed
+
+- Fixed `make help` displaying "Makefile.template" instead of actual command names
+- Fixed `make lint` isort error with auto-generated _version.py file
+- Resolved dependency mismatches in pyproject.toml
+
 ## [1.0.1] - 2025-11-01
 
 ### Added
@@ -46,6 +68,7 @@ All notable changes to this project are documented in this file. The format foll
 - SPDX license list download helpers and placeholder extraction support.
 - Pre-commit integration and CLI documentation.
 
-[unreleased]: https://github.com/uglyegg/spdx-tools/compare/v1.0.1...HEAD
+[unreleased]: https://github.com/uglyegg/spdx-tools/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/uglyegg/spdx-tools/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/uglyegg/spdx-tools/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/uglyegg/spdx-tools/releases/tag/v1.0.0
