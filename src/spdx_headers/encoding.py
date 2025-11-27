@@ -110,8 +110,7 @@ def read_file_with_encoding(
         raise EncodingError(
             filepath,
             [encoding],
-            f"File could not be decoded with {encoding}. "
-            "Try specifying a different encoding.",
+            f"File could not be decoded with {encoding}. " "Try specifying a different encoding.",
         ) from exc
 
 

@@ -73,7 +73,7 @@ packages = ["src/spdx_headers"]
 version-file = "src/spdx_headers/_version.py"
 
 [tool.black]
-line-length = 88
+line-length = 99
 target-version = ['py39']
 include = '\.pyi?'
 extend-exclude = '''

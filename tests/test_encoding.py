@@ -345,9 +345,7 @@ class TestEncodingEdgeCases:
             def detect(data):
                 return {"encoding": "latin-1", "confidence": 0.9}
 
-        monkeypatch.setattr(
-            "spdx_headers.encoding.chardet", MockChardet(), raising=False
-        )
+        monkeypatch.setattr("spdx_headers.encoding.chardet", MockChardet(), raising=False)
 
         # Should use chardet result
         encoding = detect_encoding(temp_file)
@@ -364,9 +362,7 @@ class TestEncodingEdgeCases:
             def detect(data):
                 return {"encoding": "ascii", "confidence": 0.5}
 
-        monkeypatch.setattr(
-            "spdx_headers.encoding.chardet", MockChardet(), raising=False
-        )
+        monkeypatch.setattr("spdx_headers.encoding.chardet", MockChardet(), raising=False)
 
         # Should fall back to trying encodings
         encoding = detect_encoding(temp_file)
@@ -391,9 +387,7 @@ class TestEncodingEdgeCases:
             def detect(data):
                 return {"encoding": "utf-8", "confidence": 0.95}
 
-        monkeypatch.setattr(
-            "spdx_headers.encoding.chardet", MockChardet(), raising=False
-        )
+        monkeypatch.setattr("spdx_headers.encoding.chardet", MockChardet(), raising=False)
 
         info = get_encoding_info(temp_file)
         assert info["is_text"] is True

@@ -59,9 +59,7 @@ class EncodingError(FileProcessingError):
     ):
         self.attempted_encodings = attempted_encodings
 
-        reason = (
-            f"Unable to decode file with encodings: {', '.join(attempted_encodings)}"
-        )
+        reason = f"Unable to decode file with encodings: {', '.join(attempted_encodings)}"
 
         if not suggestion:
             suggestion = (
@@ -90,9 +88,7 @@ class LicenseNotFoundError(SPDXError):
             message += "\n\nDid you mean one of these?"
             for suggestion in suggestions[:5]:
                 message += f"\n  • {suggestion}"
-            message += (
-                f"\n\nUse 'spdx-headers --list {license_id}' to search for licenses."
-            )
+            message += f"\n\nUse 'spdx-headers --list {license_id}' to search for licenses."
         else:
             message += "\n\nUse 'spdx-headers --list' to see all available licenses."
 

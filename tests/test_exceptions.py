@@ -54,9 +54,7 @@ class TestFileProcessingError:
 
     def test_file_processing_error_with_suggestion(self):
         """Test FileProcessingError with suggestion."""
-        error = FileProcessingError(
-            "test.py", "File is corrupted", "Try restoring from backup"
-        )
+        error = FileProcessingError("test.py", "File is corrupted", "Try restoring from backup")
         assert "test.py" in str(error)
         assert "File is corrupted" in str(error)
         assert "Try restoring from backup" in str(error)
@@ -234,9 +232,7 @@ class TestFindSimilarLicenses:
         licenses = ["MIT", "Apache-2.0", "GPL-3.0"]
         results = find_similar_licenses("mit", licenses)
         # Should find MIT or similar matches
-        assert (
-            len(results) >= 0
-        )  # May or may not find exact match depending on algorithm
+        assert len(results) >= 0  # May or may not find exact match depending on algorithm
 
     def test_find_similar_licenses_limit(self):
         """Test that results are limited to 5."""

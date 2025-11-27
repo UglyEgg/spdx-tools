@@ -60,9 +60,7 @@ def test_cli_show_invokes_operation(monkeypatch: pytest.MonkeyPatch) -> None:
     sys.argv = ["spdx-headers", "--show", "MIT"]
     called: Dict[str, Any] = {}
 
-    def fake_show(
-        license_key: str, license_data: Any, *args: Any, **kwargs: Any
-    ) -> None:
+    def fake_show(license_key: str, license_data: Any, *args: Any, **kwargs: Any) -> None:
         called["license_key"] = license_key
         called["license_data"] = license_data
         called["cleanup_delay"] = kwargs.get("cleanup_delay")
@@ -77,9 +75,7 @@ def test_cli_show_invokes_operation(monkeypatch: pytest.MonkeyPatch) -> None:
     assert called["cleanup_delay"] == 30.0
 
 
-def test_cli_check_fix_adds_headers(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_cli_check_fix_adds_headers(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     project_root = tmp_path
     src_dir = project_root / "src"
     src_dir.mkdir()
@@ -94,9 +90,7 @@ def test_cli_check_fix_adds_headers(
     )
     assert header is not None
 
-    (src_dir / "existing.py").write_text(
-        f"{header}print('existing')\n", encoding="utf-8"
-    )
+    (src_dir / "existing.py").write_text(f"{header}print('existing')\n", encoding="utf-8")
     missing_file = src_dir / "missing.py"
     missing_file.write_text("print('missing')\n", encoding="utf-8")
 
@@ -121,9 +115,7 @@ def test_cli_show_keep_temp(monkeypatch: pytest.MonkeyPatch) -> None:
     sys.argv = ["spdx-headers", "--show", "MIT", "--keep-temp"]
     called: Dict[str, Any] = {}
 
-    def fake_show(
-        license_key: str, license_data: Any, *args: Any, **kwargs: Any
-    ) -> None:
+    def fake_show(license_key: str, license_data: Any, *args: Any, **kwargs: Any) -> None:
         called["cleanup_delay"] = kwargs.get("cleanup_delay")
 
     monkeypatch.setattr(cli, "show_license", fake_show)

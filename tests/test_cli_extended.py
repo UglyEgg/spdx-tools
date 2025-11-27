@@ -27,9 +27,7 @@ class TestCLIUpdateCommand:
     @patch("spdx_headers.cli.update_license_data")
     def test_update_with_data_file(self, mock_update):
         """Test update command with custom data file."""
-        with patch.object(
-            sys, "argv", ["spdx-headers", "--update", "--data-file", "custom.json"]
-        ):
+        with patch.object(sys, "argv", ["spdx-headers", "--update", "--data-file", "custom.json"]):
             result = main()
             assert result == 0
 
@@ -52,9 +50,7 @@ class TestCLICheckCommand:
         """Test --check with --fix."""
         mock_check.return_value = 1  # Some files missing headers
 
-        with patch.object(
-            sys, "argv", ["spdx-headers", "--check", "--fix", "-p", str(tmp_path)]
-        ):
+        with patch.object(sys, "argv", ["spdx-headers", "--check", "--fix", "-p", str(tmp_path)]):
             main()
             mock_fix.assert_called_once()
 
@@ -76,9 +72,7 @@ class TestCLIListCommand:
 
     def test_list_no_matches(self):
         """Test listing with keyword that has no matches."""
-        with patch.object(
-            sys, "argv", ["spdx-headers", "--list", "nonexistent-license-xyz"]
-        ):
+        with patch.object(sys, "argv", ["spdx-headers", "--list", "nonexistent-license-xyz"]):
             result = main()
             # Should return 1 when no matches found
             assert result in [0, 1]
@@ -237,9 +231,7 @@ class TestCLIVerifyCommand:
             "print('hello')\n"
         )
 
-        with patch.object(
-            sys, "argv", ["spdx-headers", "--verify", "-p", str(tmp_path)]
-        ):
+        with patch.object(sys, "argv", ["spdx-headers", "--verify", "-p", str(tmp_path)]):
             result = main()
             assert result == 0
 
@@ -266,9 +258,7 @@ class TestCLIExtractCommand:
 
     def test_extract_with_keyword(self, tmp_path):
         """Test extract with keyword."""
-        with patch.object(
-            sys, "argv", ["spdx-headers", "--extract", "MIT", "-p", str(tmp_path)]
-        ):
+        with patch.object(sys, "argv", ["spdx-headers", "--extract", "MIT", "-p", str(tmp_path)]):
             result = main()
             assert result == 0
 
@@ -422,9 +412,7 @@ class TestCLIErrorHandling:
 
     def test_invalid_directory(self):
         """Test with invalid directory."""
-        with patch.object(
-            sys, "argv", ["spdx-headers", "--check", "/nonexistent/directory"]
-        ):
+        with patch.object(sys, "argv", ["spdx-headers", "--check", "/nonexistent/directory"]):
             # Should handle gracefully
             try:
                 result = main()
@@ -486,9 +474,7 @@ class TestCLIOutputFormatting:
         file1 = tmp_path / "test.py"
         file1.write_text("print('hello')\n")
 
-        with patch.object(
-            sys, "argv", ["spdx-headers", "--check", "-p", str(tmp_path)]
-        ):
+        with patch.object(sys, "argv", ["spdx-headers", "--check", "-p", str(tmp_path)]):
             main()
             captured = capsys.readouterr()
             # Should contain check results

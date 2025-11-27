@@ -37,9 +37,7 @@ class TestBuildLicensePlaceholder:
 
     def test_build_placeholder_long_name(self):
         """Test building placeholder with long license name."""
-        result = _build_license_placeholder(
-            "Apache-2.0", "Apache License 2.0 - Very Long Name"
-        )
+        result = _build_license_placeholder("Apache-2.0", "Apache License 2.0 - Very Long Name")
         assert "Apache-2.0" in result
         assert "Apache License 2.0" in result
 
