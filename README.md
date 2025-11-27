@@ -1,4 +1,3 @@
-
 # SPDX Headers
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
@@ -7,6 +6,7 @@
 `spdx-headers` is a command-line tool for auditing and maintaining SPDX license headers in Python projects. It can add, verify, and update SPDX headers, extract license texts, and integrates seamlessly with `pre-commit`.
 
 ## Table of Contents
+
 1. [Features](#features)
 2. [Installation](#installation)
 3. [Quick Start](#quick-start)
@@ -73,18 +73,18 @@ spdx-headers --extract --add MIT --dry-run
 
 ## Core Commands
 
-| Command | Description |
-| --- | --- |
-| `spdx-headers --add LICENSE` | Add the specified SPDX header to all Python files. |
-| `spdx-headers --change LICENSE` | Replace existing headers with the specified SPDX identifier. |
-| `spdx-headers --remove` | Remove SPDX headers from all Python files. |
-| `spdx-headers --verify` | Print a report of files missing headers (no exit code). |
-| `spdx-headers --check [--fix]` | Return exit code 0/1 depending on compliance; `--fix` attempts auto-repair and the command reports detected SPDX identifiers (listing files if multiple licenses are found). |
-| `spdx-headers --list [KEYWORD]` | List available SPDX identifiers, optionally filtering by keyword. |
-| `spdx-headers --show LICENSE [--keep-temp]` | Display a license summary using the system’s default viewer (optionally keep the temp file). |
-| `spdx-headers --extract [KEYWORD] [--add LICENSE]` | Extract license text for identifiers matching `KEYWORD`; combine with `--add`/`--change` to write headers and license text together. |
-| `spdx-headers --update` | Download the latest SPDX license data. |
-| `.spdx-headers.ini` | Optional configuration file used to exclude generated/vendor files from checks. |
+| Command                                            | Description                                                                                                                                                                  |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `spdx-headers --add LICENSE`                       | Add the specified SPDX header to all Python files.                                                                                                                           |
+| `spdx-headers --change LICENSE`                    | Replace existing headers with the specified SPDX identifier.                                                                                                                 |
+| `spdx-headers --remove`                            | Remove SPDX headers from all Python files.                                                                                                                                   |
+| `spdx-headers --verify`                            | Print a report of files missing headers (no exit code).                                                                                                                      |
+| `spdx-headers --check [--fix]`                     | Return exit code 0/1 depending on compliance; `--fix` attempts auto-repair and the command reports detected SPDX identifiers (listing files if multiple licenses are found). |
+| `spdx-headers --list [KEYWORD]`                    | List available SPDX identifiers, optionally filtering by keyword.                                                                                                            |
+| `spdx-headers --show LICENSE [--keep-temp]`        | Display a license summary using the system’s default viewer (optionally keep the temp file).                                                                                 |
+| `spdx-headers --extract [KEYWORD] [--add LICENSE]` | Extract license text for identifiers matching `KEYWORD`; combine with `--add`/`--change` to write headers and license text together.                                         |
+| `spdx-headers --update`                            | Download the latest SPDX license data.                                                                                                                                       |
+| `.spdx-headers.ini`                                | Optional configuration file used to exclude generated/vendor files from checks.                                                                                              |
 
 See [`docs/usage.md`](docs/usage.md) for a comprehensive walkthrough.
 

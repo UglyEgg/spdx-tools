@@ -21,7 +21,6 @@ All notable changes to this project are documented in this file. The format foll
 ### Added
 
 - Comprehensive test suite with 241 tests achieving 81% code coverage
-- PyPI release checklist and documentation guides
 - Examples directory with benchmark scripts
 
 ### Changed
@@ -35,7 +34,7 @@ All notable changes to this project are documented in this file. The format foll
 ### Fixed
 
 - Fixed `make help` displaying "Makefile.template" instead of actual command names
-- Fixed `make lint` isort error with auto-generated _version.py file
+- Fixed `make lint` isort error with auto-generated \_version.py file
 - Resolved dependency mismatches in pyproject.toml
 
 ## [1.0.1] - 2025-11-01

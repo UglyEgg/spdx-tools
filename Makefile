@@ -15,7 +15,7 @@ CLEAN_ALL_EXTRA := .uv uv.lock
 TYPECHECK_PATHS := src
 PRE_COMMIT := pre_commit
 
-MARKDOWNLINT_HOOK := markdownlint-cli2
+MARKDOWNLINT_HOOK := .markdownlint
 
 # Indicate which template targets are overridden locally
 TEMPLATE_SKIP_install := 1
@@ -29,9 +29,9 @@ LINT_COMMANDS := \
     $(RUN_DEV) $(RUFF) $(RUFF_ARGS) && \
     $(RUN_DEV) $(BLACK) $(BLACK_LINT_ARGS) && \
     $(RUN_DEV) $(ISORT) $(ISORT_LINT_ARGS) && \
-    $(RUN_DEV) $(PRE_COMMIT) run $(MARKDOWNLINT_HOOK) --all-files
+    $(RUN_DEV) $(PRE_COMMIT) run $(MARKDOWNLINT_HOOK) --all-files --config .markdownlint.json
 
-.PHONY: sync sync-dev build publish publish-test update-spdx-data bump-version list-licenses verify-headers check-headers info update-deps lock ci-install ci-test ci-check 
+.PHONY: sync sync-dev build publish publish-test serve-docs update-spdx-data bump-version list-licenses verify-headers check-headers dev-setup quick-check release-check info update-deps lock ci-install ci-test ci-check show-outdated tree lint-markdown lint-markdown-summary
 
 # Environment setup
 install: ## Install the package in the current environment
@@ -101,7 +101,18 @@ verify-headers: ## Verify SPDX headers in the project
 check-headers: ## Check for missing headers (CI-friendly)
 	uv run spdx-headers --check
 
+serve-docs: ## Serve documentation locally
+	@echo "Documentation serving target - implement when adding docs"
+
 # Development workflow shortcuts
+dev-setup: install-dev pre-commit-install update-spdx-data ## Complete development setup
+	@echo "Development environment is ready!"
+	@echo "Run 'make help' to see available commands"
+
+quick-check: format lint test ## Quick development check (format, lint, test)
+
+release-check: clean check build ## Full release preparation check
+
 # Dependency management
 update-deps: ## Update all dependencies
 	uv sync --upgrade
@@ -124,3 +135,15 @@ ci-check: ## Run all CI checks
 	uv run pytest --cov=src --cov-report=xml
 
 # Utility targets
+show-outdated: ## Show outdated dependencies
+	uv pip list --outdated
+
+tree: ## Show project structure
+	tree -I '__pycache__|*.pyc|*.pyo|.git|.pytest_cache|.mypy_cache|*.egg-info|build|dist|.venv|.uv'
+
+# Custom markdown linting target
+lint-markdown: ## Run markdown linting with consolidated error reporting
+	@./scripts/lint-markdown.sh
+
+lint-markdown-summary: ## Run markdown linting with detailed file-by-file breakdown
+	@./scripts/lint-markdown-summary.sh

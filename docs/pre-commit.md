@@ -21,7 +21,7 @@ Add the following entry to your repository’s `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/uglyegg/spdx-tools
-    rev: v1.0.0  # pin to a tagged release for reproducibility
+    rev: v1.0.0 # pin to a tagged release for reproducibility
     hooks:
       - id: spdx-header-check
 ```
@@ -35,7 +35,7 @@ pre-commit run --all-files   # optional initial pass
 
 The bundled hook executes:
 
-```
+```shell
 ./scripts/spdx_headers_cli.py --check --fix
 ```
 

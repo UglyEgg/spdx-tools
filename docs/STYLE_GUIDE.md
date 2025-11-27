@@ -13,6 +13,7 @@ This project follows PEP-8 with modern Python best practices and some intentiona
 **Maximum:** 99 characters
 
 **Rationale:**
+
 - Modern standard (black/ruff default)
 - Better for modern displays and IDEs
 - Balances readability with practicality
@@ -142,6 +143,7 @@ class ClassName:
 ### Imports
 
 **Order:**
+
 1. Standard library imports
 2. Third-party package imports
 3. Local application imports
@@ -169,16 +171,16 @@ from .data import load_data
 
 ### Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| **Functions** | `snake_case` | `def process_data():` |
-| **Variables** | `snake_case` | `user_name = "John"` |
-| **Constants** | `UPPER_SNAKE_CASE` | `MAX_SIZE = 100` |
-| **Classes** | `PascalCase` | `class UserProfile:` |
-| **Exceptions** | `PascalCase` | `class ValidationError:` |
-| **Private** | `_leading_underscore` | `def _internal_func():` |
-| **Protected** | `_leading_underscore` | `self._protected_attr` |
-| **Dunder** | `__double_underscore__` | `__init__`, `__str__` |
+| Type           | Convention              | Example                  |
+| -------------- | ----------------------- | ------------------------ |
+| **Functions**  | `snake_case`            | `def process_data():`    |
+| **Variables**  | `snake_case`            | `user_name = "John"`     |
+| **Constants**  | `UPPER_SNAKE_CASE`      | `MAX_SIZE = 100`         |
+| **Classes**    | `PascalCase`            | `class UserProfile:`     |
+| **Exceptions** | `PascalCase`            | `class ValidationError:` |
+| **Private**    | `_leading_underscore`   | `def _internal_func():`  |
+| **Protected**  | `_leading_underscore`   | `self._protected_attr`   |
+| **Dunder**     | `__double_underscore__` | `__init__`, `__str__`    |
 
 ---
 
@@ -533,6 +535,7 @@ This style guide ensures:
 - ✅ Automated quality checks
 
 **Key Principles:**
+
 1. Clarity over cleverness
 2. Explicit over implicit
 3. Simple over complex
@@ -540,5 +543,3 @@ This style guide ensures:
 5. Documented over undocumented
 
 ---
-
-*Last updated: 2024-11-26*
