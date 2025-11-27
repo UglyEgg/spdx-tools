@@ -142,7 +142,8 @@ def check_missing_headers(directory: PathLike, dry_run: bool = False) -> list[st
     Check for Python files missing SPDX headers.
     Returns list of files without headers.
     """
-    if not os.path.isdir(directory):
+    dir_path = Path(directory)
+    if not dir_path.is_dir():
         print(f"Error: The directory '{directory}' does not exist.")
         raise FileNotFoundError(directory)
 

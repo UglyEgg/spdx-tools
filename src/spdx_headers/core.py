@@ -120,7 +120,7 @@ def find_python_files(directory: PathLike) -> list[str]:
                 continue
             if filename in exclusions:
                 continue
-            python_files.append(os.path.join(root, filename))
+            python_files.append(str(Path(root) / filename))
     return python_files
 
 
@@ -434,9 +434,10 @@ class FileProcessor:
 
         except Exception:
             # Clean up temp file on error
-            if os.path.exists(temp_path):
+            temp_file = Path(temp_path)
+            if temp_file.exists():
                 try:
-                    os.unlink(temp_path)
+                    temp_file.unlink()
                 except OSError:
                     pass
             raise
