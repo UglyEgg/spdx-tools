@@ -168,9 +168,7 @@ class TestFileProcessorHeaderManipulation:
         processor = FileProcessor(temp_file)
         processor.load()
 
-        new_header = (
-            "# SPDX-FileCopyrightText: 2025 Test\n# SPDX-License-Identifier: MIT\n\n"
-        )
+        new_header = "# SPDX-FileCopyrightText: 2025 Test\n# SPDX-License-Identifier: MIT\n\n"
         processor.add_header(new_header)
 
         assert processor._modified is True
@@ -190,8 +188,7 @@ class TestFileProcessorHeaderManipulation:
         processor.load()
 
         new_header = (
-            "# SPDX-FileCopyrightText: 2025 New\n"
-            "# SPDX-License-Identifier: Apache-2.0\n\n"
+            "# SPDX-FileCopyrightText: 2025 New\n" "# SPDX-License-Identifier: Apache-2.0\n\n"
         )
         processor.add_header(new_header)
 
@@ -519,9 +516,7 @@ class TestFileProcessorEdgeCases:
 
     def test_file_with_only_header(self, temp_file):
         """Test file with only header, no code."""
-        content = (
-            "# SPDX-FileCopyrightText: 2025 Test\n" "# SPDX-License-Identifier: MIT\n"
-        )
+        content = "# SPDX-FileCopyrightText: 2025 Test\n" "# SPDX-License-Identifier: MIT\n"
         temp_file.write_text(content)
 
         processor = FileProcessor(temp_file)

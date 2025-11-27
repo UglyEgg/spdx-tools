@@ -95,9 +95,7 @@ def load_license_data(data_file_path: Optional[PathLike] = None) -> LicenseData:
         The cache is cleared when update_license_data() is called to ensure
         fresh data is loaded after updates.
     """
-    resolved_path = (
-        Path(data_file_path) if data_file_path is not None else DEFAULT_DATA_FILE
-    )
+    resolved_path = Path(data_file_path) if data_file_path is not None else DEFAULT_DATA_FILE
     return _load_license_data_cached(resolved_path)
 
 
@@ -111,9 +109,7 @@ def update_license_data(data_file_path: Optional[PathLike] = None) -> None:
             "Install it with: pip install requests"
         ) from exc
 
-    resolved_path = (
-        Path(data_file_path) if data_file_path is not None else DEFAULT_DATA_FILE
-    )
+    resolved_path = Path(data_file_path) if data_file_path is not None else DEFAULT_DATA_FILE
 
     print("Downloading SPDX license data...")
     try:
@@ -124,9 +120,7 @@ def update_license_data(data_file_path: Optional[PathLike] = None) -> None:
         response.raise_for_status()
 
         spdx_data = cast(Mapping[str, Any], response.json())
-        licenses_section = cast(
-            Iterable[Mapping[str, Any]], spdx_data.get("licenses", [])
-        )
+        licenses_section = cast(Iterable[Mapping[str, Any]], spdx_data.get("licenses", []))
         licenses_list = list(licenses_section)
 
         license_data: LicenseData = {

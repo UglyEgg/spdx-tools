@@ -207,14 +207,10 @@ def auto_fix_headers(
 
     inferred_license = next(iter(unique_identifiers))
     if inferred_license not in license_data["licenses"]:
-        print(
-            f"✗ Inferred license '{inferred_license}' is not present in loaded license data."
-        )
+        print(f"✗ Inferred license '{inferred_license}' is not present in loaded license data.")
         return False
 
-    print(
-        f"Attempting to add SPDX headers using inferred license '{inferred_license}'."
-    )
+    print(f"Attempting to add SPDX headers using inferred license '{inferred_license}'.")
     add_header_to_py_files(
         directory, inferred_license, license_data, year, name, email, dry_run=dry_run
     )
@@ -224,9 +220,7 @@ def auto_fix_headers(
         print("✓ Successfully added missing SPDX headers.")
         return True
 
-    print(
-        "✗ Some files are still missing SPDX headers. Review the output above for details."
-    )
+    print("✗ Some files are still missing SPDX headers. Review the output above for details.")
     return False
 
 
@@ -454,8 +448,7 @@ def filter_licenses(
     filtered = [
         (license_key, details)
         for license_key, details in sorted_licenses
-        if keyword_lower in license_key.lower()
-        or keyword_lower in details.get("name", "").lower()
+        if keyword_lower in license_key.lower() or keyword_lower in details.get("name", "").lower()
     ]
     return filtered
 
@@ -486,9 +479,7 @@ def extract_license(
     preferred_path = target_path / "LICENSE"
     preferred_exists = preferred_path.exists()
     license_file_path = (
-        preferred_path
-        if not preferred_exists
-        else target_path / f"LICENSE-{license_key}"
+        preferred_path if not preferred_exists else target_path / f"LICENSE-{license_key}"
     )
 
     if dry_run:
@@ -506,9 +497,7 @@ def extract_license(
             if preferred_exists:
                 print("Info: Existing LICENSE preserved; wrote suffixed file instead.")
             if used_placeholder:
-                print(
-                    "⚠ Full license text unavailable – placeholder file was generated."
-                )
+                print("⚠ Full license text unavailable – placeholder file was generated.")
         except OSError as exc:
             print(f"✗ Error extracting license to '{license_file_path}': {exc}")
 
@@ -572,9 +561,7 @@ def show_license(
     try:
         opener(temp_path)
         if cleanup_delay is not None:
-            timer = threading.Timer(
-                cleanup_delay, temp_path.unlink, kwargs={"missing_ok": True}
-            )
+            timer = threading.Timer(cleanup_delay, temp_path.unlink, kwargs={"missing_ok": True})
             timer.start()
     except OSError as exc:
         print(f"✗ Error opening license viewer: {exc}")

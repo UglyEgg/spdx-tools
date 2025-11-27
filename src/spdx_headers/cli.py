@@ -187,9 +187,7 @@ def main() -> int:
             print(f"Generated: {license_data['metadata']['generated_at']}")
             if keyword:
                 print(f"Filter: {keyword}")
-                print(
-                    f"Matched licenses: {len(matching_licenses)} of {total_licenses} total"
-                )
+                print(f"Matched licenses: {len(matching_licenses)} of {total_licenses} total")
             else:
                 print(f"Total licenses: {total_licenses}")
             print("\nLicenses:")
@@ -198,9 +196,7 @@ def main() -> int:
                 deprecated = " (deprecated)" if details.get("deprecated", False) else ""
                 osi = " [OSI]" if details.get("osi_approved", False) else ""
                 fsf = " [FSF]" if details.get("fsf_libre", False) else ""
-                print(
-                    f"- {license_key}{deprecated}{osi}{fsf}: {details.get('name', '')}"
-                )
+                print(f"- {license_key}{deprecated}{osi}{fsf}: {details.get('name', '')}")
         else:
             if keyword:
                 print(f"No licenses found matching keyword '{keyword}'.")
@@ -208,9 +204,7 @@ def main() -> int:
                 print("No licenses available.")
         return 0
     elif args.add:
-        add_header_to_py_files(
-            src_dir, args.add, license_data, year, name, email, args.dry_run
-        )
+        add_header_to_py_files(src_dir, args.add, license_data, year, name, email, args.dry_run)
         # If extract is also specified, extract the license file
         if extract_arg is not None:
             target_license = args.add if extract_arg == "" else extract_arg
@@ -238,9 +232,7 @@ def main() -> int:
     elif args.check:
         exit_code = check_headers(src_dir)
         if exit_code != 0 and args.fix:
-            success = auto_fix_headers(
-                src_dir, license_data, year, name, email, args.dry_run
-            )
+            success = auto_fix_headers(src_dir, license_data, year, name, email, args.dry_run)
             if success:
                 exit_code = check_headers(src_dir)
         return exit_code

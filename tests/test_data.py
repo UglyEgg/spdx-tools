@@ -35,9 +35,7 @@ def test_update_license_data_network_error(
     assert "Error downloading SPDX license data" in str(excinfo.value)
 
 
-def test_update_license_data_invalid_json(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_update_license_data_invalid_json(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     fake_requests = types.ModuleType("requests")
 
     class FakeRequestException(Exception):
