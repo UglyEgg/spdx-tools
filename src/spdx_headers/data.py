@@ -11,9 +11,9 @@ import datetime
 import json
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping, Optional, TypedDict, Union, cast
+from typing import Any, Iterable, Mapping, TypedDict, cast
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 
 class _LicenseEntryRequired(TypedDict):
@@ -36,7 +36,7 @@ class LicenseMetadata(TypedDict):
 
 class LicenseData(TypedDict):
     metadata: LicenseMetadata
-    licenses: Dict[str, LicenseEntry]
+    licenses: dict[str, LicenseEntry]
 
 
 # Default location for the SPDX license data file
@@ -74,7 +74,7 @@ def _load_license_data_cached(resolved_path: Path) -> LicenseData:
         ) from exc
 
 
-def load_license_data(data_file_path: Optional[PathLike] = None) -> LicenseData:
+def load_license_data(data_file_path: PathLike | None = None) -> LicenseData:
     """Load the SPDX license data from the JSON file.
 
     This function uses an LRU cache to avoid repeated parsing of the same
@@ -101,7 +101,7 @@ def load_license_data(data_file_path: Optional[PathLike] = None) -> LicenseData:
     return _load_license_data_cached(resolved_path)
 
 
-def update_license_data(data_file_path: Optional[PathLike] = None) -> None:
+def update_license_data(data_file_path: PathLike | None = None) -> None:
     """Update the SPDX license data file by downloading from the official source."""
     try:
         import requests
@@ -189,7 +189,7 @@ def clear_license_data_cache() -> None:
     _load_license_data_cached.cache_clear()
 
 
-def get_cache_info() -> Dict[str, Optional[int]]:
+def get_cache_info() -> dict[str, int | None]:
     """Get information about the license data cache.
 
     Returns a dictionary with cache statistics including:
