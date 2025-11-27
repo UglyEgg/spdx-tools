@@ -201,7 +201,18 @@ def create_header(
     name: str,
     email: str,
 ) -> str | None:
-    """Create a header for the specified license with copyright information."""
+    """Create a header for the specified license with copyright information.
+
+    Args:
+        license_data: License database containing license information
+        license_key: SPDX license identifier (e.g., 'MIT', 'Apache-2.0')
+        year: Copyright year
+        name: Copyright holder name
+        email: Copyright holder email
+
+    Returns:
+        Formatted SPDX header string, or None if license not found
+    """
     if license_key not in license_data["licenses"]:
         return None
 

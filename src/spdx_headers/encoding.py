@@ -79,9 +79,7 @@ def detect_encoding(filepath: Path, sample_size: int = 10000) -> str:
     raise EncodingError(filepath, DEFAULT_ENCODINGS)
 
 
-def read_file_with_encoding(
-    filepath: Path, encoding: str | None = None
-) -> tuple[list[str], str]:
+def read_file_with_encoding(filepath: Path, encoding: str | None = None) -> tuple[list[str], str]:
     """Read a file with automatic encoding detection.
 
     Args:
