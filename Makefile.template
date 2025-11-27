@@ -64,12 +64,12 @@ CLEAN_ALL_EXTRA ?=
 	lint format test test-verbose test-cov type-check pre-commit pre-commit-install \
 	check docs
 
+
 help: ## Display this help screen.
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Available targets:"
-	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'
-
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sed 's/^[^:]*:\([^:]*\):.*## \(.*\)$$/\1##\2/' | sort | awk 'BEGIN {FS="##"}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'
 # Template Targets ---------------------------------------------------------------------
 
 ifndef TEMPLATE_SKIP_install
