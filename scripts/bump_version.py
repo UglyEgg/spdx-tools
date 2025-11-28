@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Automate release version bumps by updating CHANGELOG.md.
+Automate release version bumps by updating CHANGELOG.md, pyproject.toml, and _version.py.
 
 Usage examples:
     python scripts/bump_version.py                # bump patch version
@@ -11,9 +11,13 @@ The script:
 1. Calculates the new version based on the previous release entry.
 2. Moves "Unreleased" notes into a dated release section.
 3. Refreshes comparison links at the bottom of the changelog.
+4. Updates the version in pyproject.toml.
+5. Updates the version in src/spdx_headers/_version.py.
 
-Note: Because this project uses `hatch-vcs`, publish a release by tagging
-      the repository after running this script (e.g., `git tag vX.Y.Z`).
+After running this script, commit the changes and tag the release:
+    git commit -am 'Release vX.Y.Z'
+    git tag vX.Y.Z
+    git push origin main --tags
 """
 from __future__ import annotations
 
@@ -30,6 +34,7 @@ HEADER_BLOCK = (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CHANGELOG_PATH = REPO_ROOT / "CHANGELOG.md"
 VERSION_FILE = REPO_ROOT / "src" / "spdx_headers" / "_version.py"
+PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
 
 
 def semver_bump(version: str, part: str) -> str:
@@ -62,9 +67,7 @@ def parse_changelog() -> Tuple[List[str], int, int, str]:
 
     try:
         next_heading_idx = next(
-            i
-            for i in range(unreleased_idx + 1, len(lines))
-            if lines[i].startswith("## [")
+            i for i in range(unreleased_idx + 1, len(lines)) if lines[i].startswith("## [")
         )
     except StopIteration:
         next_heading_idx = len(lines)
@@ -105,9 +108,7 @@ def build_unreleased_template() -> List[str]:
 
 def update_changelog(new_version: str) -> str:
     lines, unreleased_idx, next_heading_idx, previous_version = parse_changelog()
-    unreleased_section = sanitize_unreleased_section(
-        lines[unreleased_idx + 1 : next_heading_idx]
-    )
+    unreleased_section = sanitize_unreleased_section(lines[unreleased_idx + 1 : next_heading_idx])
 
     release_heading = [f"\n## [{new_version}] - {dt.date.today():%Y-%m-%d}\n", "\n"]
     release_block = release_heading + unreleased_section + ["\n"]
@@ -115,10 +116,7 @@ def update_changelog(new_version: str) -> str:
     new_unreleased = build_unreleased_template()
 
     updated_lines = (
-        lines[: unreleased_idx + 1]
-        + new_unreleased
-        + release_block
-        + lines[next_heading_idx:]
+        lines[: unreleased_idx + 1] + new_unreleased + release_block + lines[next_heading_idx:]
     )
 
     # Update link references
@@ -140,40 +138,41 @@ def update_changelog(new_version: str) -> str:
     return previous_version
 
 
+def update_pyproject_toml(new_version: str) -> None:
+    """Update the version in pyproject.toml."""
+    content = PYPROJECT_PATH.read_text(encoding="utf-8")
+    lines = content.splitlines(keepends=True)
+
+    for i, line in enumerate(lines):
+        if line.strip().startswith("version ="):
+            # Preserve the quote style used
+            quote = '"' if '"' in line else "'"
+            lines[i] = f"version = {quote}{new_version}{quote}\n"
+            break
+
+    PYPROJECT_PATH.write_text("".join(lines), encoding="utf-8")
+
+
 def update_version_file(new_version: str) -> None:
+    """Update the _version.py file with the new version."""
     content = VERSION_FILE.read_text(encoding="utf-8")
     if HEADER_BLOCK not in content:
         content = HEADER_BLOCK + content.lstrip()
 
     lines = content.splitlines(keepends=True)
 
-    def _rewrite_line(target: str, replacement: str) -> None:
-        for index, line in enumerate(lines):
-            if line.strip().startswith(target):
-                prefix = line[: line.index(target)] if target in line else ""
-                newline = "\n" if line.endswith("\n") else ""
-                lines[index] = f"{prefix}{replacement}{newline}"
-                return
-        raise RuntimeError(f"Unable to update {target} in _version.py")
-
+    # Determine quote style
     quote = '"'
     for line in lines:
         if line.strip().startswith("__version__ = version ="):
             quote = '"' if '"' in line else "'"
             break
 
-    version_line = f"__version__ = version = {quote}{new_version}{quote}"
-    _rewrite_line("__version__ = version =", version_line)
-
-    tuple_fragments: list[str] = []
-    for fragment in new_version.split("."):
-        try:
-            tuple_fragments.append(str(int(fragment)))
-        except ValueError:
-            tuple_fragments.append(repr(fragment))
-    tuple_repr = ", ".join(tuple_fragments)
-    tuple_line = f"__version_tuple__ = version_tuple = ({tuple_repr})"
-    _rewrite_line("__version_tuple__ = version_tuple =", tuple_line)
+    # Update the version line
+    for i, line in enumerate(lines):
+        if line.strip().startswith("__version__ = version ="):
+            lines[i] = f"__version__ = version = {quote}{new_version}{quote}\n"
+            break
 
     VERSION_FILE.write_text("".join(lines), encoding="utf-8")
 
@@ -203,6 +202,7 @@ def main() -> None:
         new_version = semver_bump(current_version, part)
 
     prev = update_changelog(new_version)
+    update_pyproject_toml(new_version)
     update_version_file(new_version)
     print(f"Prepared release notes for {new_version} (previous: {prev}).")
     print("Next steps:")

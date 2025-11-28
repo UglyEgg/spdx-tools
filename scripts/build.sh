@@ -3,13 +3,13 @@
 set -euo pipefail
 
 VERSION=$(python - <<'PY'
-import pathlib, re
+import tomllib, pathlib
 
-data = pathlib.Path("src/spdx_headers/_version.py").read_text()
-match = re.search(r'__version__\s*=\s*version\s*=\s*"([^"]+)"', data)
-if not match:
-    raise SystemExit("Unable to determine package version from _version.py")
-print(match.group(1))
+data = tomllib.loads(pathlib.Path("pyproject.toml").read_text())
+version = data.get("project", {}).get("version")
+if not version:
+    raise SystemExit("Unable to determine package version from pyproject.toml")
+print(version)
 PY
 )
 
