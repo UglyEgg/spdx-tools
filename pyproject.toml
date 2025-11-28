@@ -1,11 +1,11 @@
 
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
 name = "spdx-headers"
-dynamic = ["version"]
+version = "1.0.2"
 description = "A command-line tool for managing SPDX headers in Python source files"
 readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
@@ -59,17 +59,11 @@ Changelog = "https://github.com/uglyegg/spdx-tools/blob/main/CHANGELOG.md"
 [project.scripts]
 spdx-headers = "spdx_headers.cli:main"
 
-[tool.hatch.version]
-source = "vcs"
-
 [tool.hatch.build.targets.wheel]
 packages = ["src/spdx_headers"]
 
 [tool.hatch.build.targets.wheel.shared-data]
 "src/spdx_headers/data" = "spdx_headers/data"
-
-[tool.hatch.build.hooks.vcs]
-version-file = "src/spdx_headers/_version.py"
 
 [tool.black]
 line-length = 99
