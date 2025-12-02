@@ -5,23 +5,23 @@ All notable changes to this project are documented in this file. The format foll
 ## [Unreleased]
 
 ### Added
--
+
+- Ability to work on individual file
+- Support for repo-root specification
+- Tests to support the new & improved functionality
 
 ### Changed
--
+
+- Various documentation tweaks
+- Enhanced path specification flexibility
 
 ### Fixed
--
+
+- Scripts/bump_version.py multiple QoL tweaks
+- Logic for path was overriding -p, --path specification
+- Correct copyright author detection from pyproject.toml
 
 ## [1.0.3] - 2025-12-02
-
-### Added
-
--
-
-### Changed
-
--
 
 ### Fixed
 

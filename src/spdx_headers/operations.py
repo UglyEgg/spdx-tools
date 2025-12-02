@@ -16,7 +16,7 @@ import tempfile
 import textwrap
 import threading
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Union
 from urllib.parse import quote_plus
 
 from .core import (
@@ -35,7 +35,7 @@ from .exceptions import (
     find_similar_licenses,
 )
 
-PathLike = str | Path
+PathLike = Union[str, Path]
 OpenEditorCallback = Callable[[Path], None]
 
 
@@ -223,6 +223,72 @@ def auto_fix_headers(
 
     print("✗ Some files are still missing SPDX headers. Review the output above for details.")
     return False
+
+
+def add_header_to_single_file(
+    filepath: PathLike,
+    license_key: str,
+    license_data: LicenseData,
+    year: str,
+    name: str,
+    email: str,
+    dry_run: bool = False,
+) -> None:
+    """Add SPDX header to a single Python file.
+
+    Args:
+        filepath: Path to the Python file
+        license_key: SPDX license identifier
+        license_data: License database
+        year: Copyright year
+        name: Copyright holder name
+        email: Copyright holder email
+        dry_run: If True, show what would be done without making changes
+    """
+    # Validate license exists
+    if license_key not in license_data["licenses"]:
+        available_licenses = list(license_data["licenses"].keys())
+        suggestions = find_similar_licenses(license_key, available_licenses)
+        raise LicenseNotFoundError(license_key, suggestions)
+
+    header_to_add = create_header(license_data, license_key, year, name, email)
+    if header_to_add is None:
+        raise FileProcessingError(
+            filepath,
+            f"No header template available for '{license_key}'",
+            "Check the license data file or update it with 'spdx-headers --update'",
+        )
+
+    # Check if file already has header
+    if has_spdx_header(filepath):
+        if not dry_run:
+            print(f"ℹ️  File already has SPDX header: {filepath}")
+        else:
+            print(f"ℹ️  File already has SPDX header: {filepath}")
+        return
+
+    if dry_run:
+        print(f"Would add header to: {filepath}")
+    else:
+        try:
+            # Read file with encoding detection
+            lines, encoding = read_file_with_encoding(Path(filepath))
+
+            # Check for shebang line
+            shebang = ""
+            if lines and lines[0].startswith("#!"):
+                shebang = lines[0]
+                lines = lines[1:]
+
+            # Insert the header
+            new_content = shebang + header_to_add + "".join(lines)
+
+            # Write back with detected encoding
+            write_file_with_encoding(Path(filepath), [new_content], encoding)
+            print(f"✅ Added header to: {filepath}")
+
+        except Exception as e:
+            print(f"❌ Error processing {filepath}: {e}")
 
 
 def verify_spdx_headers(directory: PathLike) -> None:

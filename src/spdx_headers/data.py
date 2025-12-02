@@ -11,9 +11,9 @@ import datetime
 import json
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Iterable, Mapping, TypedDict, cast
+from typing import Any, Iterable, Mapping, TypedDict, Union, cast
 
-PathLike = str | Path
+PathLike = Union[str, Path]
 
 
 class _LicenseEntryRequired(TypedDict):

@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "spdx_version": "88388db",
-    "generated_at": "2025-11-06T00:08:15.034925",
-    "license_count": 712
+    "spdx_version": "31b6901",
+    "generated_at": "2025-12-02T03:25:35.228070",
+    "license_count": 718
   },
   "licenses": {
     "0BSD": {
@@ -170,6 +170,13 @@
       "name": "Aladdin Free Public License",
       "deprecated": false,
       "osi_approved": false,
+      "fsf_libre": false,
+      "header_template": "#\n#\n# {license_name}\n"
+    },
+    "ALGLIB-Documentation": {
+      "name": "ALGLIB Documentation License",
+      "deprecated": false,
+      "osi_approved": true,
       "fsf_libre": false,
       "header_template": "#\n#\n# {license_name}\n"
     },
@@ -752,6 +759,13 @@
       "deprecated": false,
       "osi_approved": true,
       "fsf_libre": true,
+      "header_template": "#\n#\n# {license_name}\n"
+    },
+    "Buddy": {
+      "name": "Buddy License",
+      "deprecated": false,
+      "osi_approved": false,
+      "fsf_libre": false,
       "header_template": "#\n#\n# {license_name}\n"
     },
     "BUSL-1.1": {
@@ -2644,6 +2658,13 @@
       "fsf_libre": false,
       "header_template": "#\n#\n# {license_name}\n"
     },
+    "ISO-permission": {
+      "name": "ISO permission notice",
+      "deprecated": false,
+      "osi_approved": false,
+      "fsf_libre": false,
+      "header_template": "#\n#\n# {license_name}\n"
+    },
     "Jam": {
       "name": "Jam License",
       "deprecated": false,
@@ -3178,6 +3199,13 @@
     },
     "MIT-open-group": {
       "name": "MIT Open Group variant",
+      "deprecated": false,
+      "osi_approved": false,
+      "fsf_libre": false,
+      "header_template": "#\n#\n# {license_name}\n"
+    },
+    "MIT-STK": {
+      "name": "MIT-STK License",
       "deprecated": false,
       "osi_approved": false,
       "fsf_libre": false,
@@ -4499,6 +4527,13 @@
       "fsf_libre": false,
       "header_template": "#\n#\n# {license_name}\n"
     },
+    "TekHVC": {
+      "name": "TekHVC License",
+      "deprecated": false,
+      "osi_approved": false,
+      "fsf_libre": false,
+      "header_template": "#\n#\n# {license_name}\n"
+    },
     "TermReadKey": {
       "name": "TermReadKey License",
       "deprecated": false,
@@ -4816,6 +4851,13 @@
     },
     "X11-distribute-modifications-variant": {
       "name": "X11 License Distribution Modification Variant",
+      "deprecated": false,
+      "osi_approved": false,
+      "fsf_libre": false,
+      "header_template": "#\n#\n# {license_name}\n"
+    },
+    "X11-no-permit-persons": {
+      "name": "X11 no permit persons clause",
       "deprecated": false,
       "osi_approved": false,
       "fsf_libre": false,

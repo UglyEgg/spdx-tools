@@ -3,6 +3,8 @@
 
 """
 Generate SPDX license data file from the official SPDX license list.
+from __future__ import annotations
+
 """
 
 import argparse
