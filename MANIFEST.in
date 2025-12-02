@@ -3,3 +3,4 @@ include README.md
 include CHANGELOG.md
 include LICENSE*
 recursive-include docs *.md
+include src/spdx_headers/_version.py

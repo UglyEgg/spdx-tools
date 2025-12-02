@@ -109,9 +109,43 @@ spdx-headers --update
 
 - Refreshes the bundled `spdx_license_data.json` by downloading the latest SPDX license list. Requires network access.
 
+## File and Directory Targeting
+
+### Targeting Individual Files
+
+```bash
+# Add header to a specific file
+spdx-headers --file src/my_module.py --add MIT
+
+# Check a specific file
+spdx-headers --file scripts/bump_version.py --verify
+
+# Remove headers from a specific file
+spdx-headers --file src/legacy.py --remove
+```
+
+The `--file` option allows you to target individual Python files instead of scanning entire directories. This is useful for:
+
+- Applying headers to specific new files
+- Testing header operations on a single file before bulk operations
+- Managing headers in files that are excluded from normal scanning
+
+### Targeting Specific Directories
+
+```bash
+# Operate on a specific subdirectory
+spdx-headers --path src/utils --add Apache-2.0
+
+# Check only the tests directory
+spdx-headers --path tests --check --fix
+```
+
+The `--path` option provides more precise control over which directories are processed.
+
 ## Advanced Options
 
 - `--path PATH` – operate on a different repository. Useful when invoking `spdx-headers` from automation.
+- `--file FILENAME` – target an individual Python file instead of a directory. Overrides `--path`.
 - `--data-file FILE` – supply a custom SPDX license data file.
 - `--dry-run` – compatible with most commands; prints intended actions without writing changes.
 

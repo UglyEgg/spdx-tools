@@ -19,6 +19,7 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Union
 
 try:
     import tomllib
@@ -35,7 +36,7 @@ from .data import LicenseData
 from .data import load_license_data as _load_license_data
 from .data import update_license_data as _update_license_data
 
-PathLike = str | Path
+PathLike = Union[str, Path]
 
 EXCLUDED_FILENAMES = {"_version.py"}
 CONFIG_FILENAME = ".spdx-headers.ini"
@@ -68,6 +69,23 @@ def update_license_data(data_file_path: PathLike | None = None) -> None:
     _update_license_data(data_file_path)
 
 
+def find_repository_root(start_path: PathLike) -> Path:
+    """Find the repository root by looking for pyproject.toml or .git directory."""
+    current_path = Path(start_path).resolve()
+
+    # Look for common repository markers
+    repo_markers = ["pyproject.toml", "setup.py", ".git", "setup.cfg"]
+
+    while current_path != current_path.parent:  # Stop at filesystem root
+        for marker in repo_markers:
+            if (current_path / marker).exists():
+                return current_path
+        current_path = current_path.parent
+
+    # If no markers found, assume current directory is the repo root
+    return Path(start_path).resolve()
+
+
 def find_src_directory(repo_path: PathLike) -> str:
     """Find the source directory in the repository."""
     base_path = Path(repo_path)
@@ -86,7 +104,9 @@ def get_copyright_info(repo_path: PathLike) -> tuple[str, str, str]:
     copyright_name = "John Doe"
     copyright_email = "jdoe@geocities.com"
 
-    pyproject_path = Path(repo_path) / "pyproject.toml"
+    # Always look for pyproject.toml in the repository root, not the target path
+    repo_root = find_repository_root(repo_path)
+    pyproject_path = repo_root / "pyproject.toml"
 
     if pyproject_path.exists():
         try:

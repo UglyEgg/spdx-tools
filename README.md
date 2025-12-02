@@ -29,6 +29,13 @@
 - **Flexible license viewing** – preview SPDX license summaries and optionally keep the generated files for reference.
 - **Configurable exclusions** – opt specific files out of header checks via a `.spdx-headers.ini` file.
 
+### Recent Enhancements
+
+- **Individual file targeting** – Use `--file` to target specific files instead of entire directories
+- **Enhanced directory targeting** – Improved `--path` option with better path resolution
+- **Better copyright detection** – Automatically detects copyright information from repository root
+- **Template-ready version script** – The `bump_version.py` script now works across different projects with dynamic license detection
+
 ## Installation
 
 ```bash
@@ -70,6 +77,12 @@ spdx-headers --list Apache
 
 # Extract the MIT license into LICENSE-MIT
 spdx-headers --extract --add MIT --dry-run
+
+# Target a specific file
+spdx-headers --file src/my_module.py --add MIT
+
+# Target a specific directory
+spdx-headers --path src/utils --add Apache-2.0
 ```
 
 ## Core Commands
@@ -85,6 +98,8 @@ spdx-headers --extract --add MIT --dry-run
 | `spdx-headers --show LICENSE [--keep-temp]`        | Display a license summary using the system’s default viewer (optionally keep the temp file).                                                                                 |
 | `spdx-headers --extract [KEYWORD] [--add LICENSE]` | Extract license text for identifiers matching `KEYWORD`; combine with `--add`/`--change` to write headers and license text together.                                         |
 | `spdx-headers --update`                            | Download the latest SPDX license data.                                                                                                                                       |
+| `spdx-headers --file FILENAME`                     | Target an individual Python file instead of a directory. Overrides `--path`.                                                                                                 |
+| `spdx-headers --path DIRECTORY`                    | Specify the directory path to operate on. Defaults to auto-detected source directory.                                                                                        |
 | `.spdx-headers.ini`                                | Optional configuration file used to exclude generated/vendor files from checks.                                                                                              |
 
 See [`docs/usage.md`](docs/usage.md) for a comprehensive walkthrough.

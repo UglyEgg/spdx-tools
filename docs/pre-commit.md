@@ -21,7 +21,7 @@ Add the following entry to your repository’s `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/uglyegg/spdx-tools
-    rev: v1.0.0 # pin to a tagged release for reproducibility
+    rev: v1.0.3 # pin to a tagged release for reproducibility
     hooks:
       - id: spdx-header-check
 ```
@@ -48,7 +48,7 @@ You can pass additional arguments via `args` in your `.pre-commit-config.yaml`. 
 ```yaml
 repos:
   - repo: https://github.com/uglyegg/spdx-tools
-    rev: v1.0.0
+    rev: v1.0.3
     hooks:
       - id: spdx-header-check
         args: ["--check", "--fix", "--dry-run", "--path", "backend"]

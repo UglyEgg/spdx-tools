@@ -4,16 +4,18 @@
 """
 Command-line interface for SPDX header management.
 """
+from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
 
 from . import __version__
-from .core import find_src_directory, get_copyright_info
+from .core import find_repository_root, find_src_directory, get_copyright_info
 from .data import DEFAULT_DATA_FILE, load_license_data, update_license_data
 from .operations import (
     add_header_to_py_files,
+    add_header_to_single_file,
     auto_fix_headers,
     change_header_in_py_files,
     check_headers,
@@ -145,8 +147,18 @@ def main() -> int:
         "-p",
         "--path",
         type=str,
-        default=".",
-        help="Specify the repository path to operate on. Defaults to the current directory.",
+        default=None,
+        help=(
+            "Specify the directory path to operate on. "
+            "Defaults to auto-detected source directory."
+        ),
+    )
+
+    path_group.add_argument(
+        "--file",
+        type=str,
+        default=None,
+        help="Specify an individual Python file to operate on. Overrides --path.",
     )
 
     # Add data file path option
@@ -168,14 +180,40 @@ def main() -> int:
     # Load the license data
     license_data = load_license_data(args.data_file)
 
-    # Use the specified repository path
-    repo_path = str(Path(args.path).resolve())
+    # Handle file vs directory targeting
+    if args.file:
+        # Individual file mode
+        target_file = str(Path(args.file).resolve())
+        if not target_file.endswith(".py"):
+            print(f"Error: {args.file} is not a Python file (.py extension required)")
+            sys.exit(1)
+        if not Path(target_file).exists():
+            print(f"Error: File {args.file} not found")
+            sys.exit(1)
 
-    # Get copyright information
+        # For individual files, use the file's directory for copyright detection
+        file_dir = str(Path(target_file).parent)
+        repo_path = file_dir
+        src_dir = file_dir
+        target_mode = "file"
+    else:
+        # Directory mode
+        target_mode = "directory"
+        if args.path:
+            # User specified a path
+            repo_path = str(Path(args.path).resolve())
+        else:
+            # Auto-detect repository root and then find source directory
+            repo_root = find_repository_root(".")
+            src_dir = find_src_directory(repo_root)
+            repo_path = src_dir
+
+        # Find the source directory if not already set
+        if "src_dir" not in locals():
+            src_dir = find_src_directory(repo_path)
+
+    # Get copyright information (always from repository root)
     year, name, email = get_copyright_info(repo_path)
-
-    # Find the source directory
-    src_dir = find_src_directory(repo_path)
 
     if args.fix and not args.check:
         print("Error: The --fix option must be used together with --check.")
@@ -212,7 +250,15 @@ def main() -> int:
                 print("No licenses available.")
         return 0
     elif args.add:
-        add_header_to_py_files(src_dir, args.add, license_data, year, name, email, args.dry_run)
+        if target_mode == "file":
+            add_header_to_single_file(
+                target_file, args.add, license_data, year, name, email, args.dry_run
+            )
+        else:
+            add_header_to_py_files(
+                src_dir, args.add, license_data, year, name, email, args.dry_run
+            )
+
         # If extract is also specified, extract the license file
         if extract_arg is not None:
             target_license = args.add if extract_arg == "" else extract_arg

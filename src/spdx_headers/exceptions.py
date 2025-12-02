@@ -11,6 +11,7 @@ and suggestions for common issues.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import List, Optional
 
 
 class SPDXError(Exception):
@@ -92,7 +93,7 @@ class LicenseNotFoundError(SPDXError):
         suggestions: List of similar license identifiers
     """
 
-    def __init__(self, license_id: str, suggestions: list[str | None] = None):
+    def __init__(self, license_id: str, suggestions: Optional[List[str]] = None):
         """Initialize the LicenseNotFoundError.
 
         Args:

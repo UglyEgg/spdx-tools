@@ -16,6 +16,31 @@ All notable changes to this project are documented in this file. The format foll
 
 -
 
+## [1.5.0] - 2025-12-02
+
+### Added
+
+- Ability to work on individual file
+- Support for repo-root specification
+- Tests to support the new & improved functionality
+
+### Changed
+
+- Various documentation tweaks
+- Enhanced path specification flexibility
+
+### Fixed
+
+- Scripts/bump_version.py multiple QoL tweaks
+- Logic for path was overriding -p, --path specification
+- Correct copyright author detection from pyproject.toml
+
+## [1.0.3] - 2025-12-02
+
+### Fixed
+
+- Missing \_version.py in generated PyPi whl
+
 ## [1.0.2] - 2024-11-27
 
 ### Added
@@ -67,7 +92,9 @@ All notable changes to this project are documented in this file. The format foll
 - SPDX license list download helpers and placeholder extraction support.
 - Pre-commit integration and CLI documentation.
 
-[unreleased]: https://github.com/uglyegg/spdx-tools/compare/v1.0.2...HEAD
+[unreleased]: https://github.com/uglyegg/spdx-tools/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/uglyegg/spdx-tools/compare/v1.0.3...v1.5.0
+[1.0.3]: https://github.com/uglyegg/spdx-tools/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/uglyegg/spdx-tools/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/uglyegg/spdx-tools/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/uglyegg/spdx-tools/releases/tag/v1.0.0
