@@ -16,6 +16,12 @@ All notable changes to this project are documented in this file. The format foll
 
 -
 
+## [1.5.1] - 2025-12-03
+
+### Fixed
+
+- -change, --remove, --verify, and --check operations work with --file now
+
 ## [1.5.0] - 2025-12-02
 
 ### Added
@@ -92,7 +98,8 @@ All notable changes to this project are documented in this file. The format foll
 - SPDX license list download helpers and placeholder extraction support.
 - Pre-commit integration and CLI documentation.
 
-[unreleased]: https://github.com/uglyegg/spdx-tools/compare/v1.5.0...HEAD
+[unreleased]: https://github.com/uglyegg/spdx-tools/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/uglyegg/spdx-tools/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/uglyegg/spdx-tools/compare/v1.0.3...v1.5.0
 [1.0.3]: https://github.com/uglyegg/spdx-tools/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/uglyegg/spdx-tools/compare/v1.0.1...v1.0.2

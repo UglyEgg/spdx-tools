@@ -11,18 +11,26 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .core import find_repository_root, find_src_directory, get_copyright_info
+from .core import (
+    find_repository_root,
+    find_src_directory,
+    get_copyright_info,
+    has_spdx_header,
+)
 from .data import DEFAULT_DATA_FILE, load_license_data, update_license_data
 from .operations import (
     add_header_to_py_files,
     add_header_to_single_file,
     auto_fix_headers,
     change_header_in_py_files,
+    change_header_in_single_file,
     check_headers,
     extract_license,
     filter_licenses,
     remove_header_from_py_files,
+    remove_header_from_single_file,
     show_license,
+    verify_spdx_header_in_single_file,
     verify_spdx_headers,
 )
 
@@ -265,9 +273,14 @@ def main() -> int:
             extract_license(target_license, license_data, repo_path, args.dry_run)
         return 0
     elif args.change:
-        change_header_in_py_files(
-            src_dir, args.change, license_data, year, name, email, args.dry_run
-        )
+        if target_mode == "file":
+            change_header_in_single_file(
+                target_file, args.change, license_data, year, name, email, args.dry_run
+            )
+        else:
+            change_header_in_py_files(
+                src_dir, args.change, license_data, year, name, email, args.dry_run
+            )
         # If extract is also specified, extract the license file
         if extract_arg is not None:
             target_license = args.change if extract_arg == "" else extract_arg
@@ -278,17 +291,44 @@ def main() -> int:
         show_license(args.show, license_data, cleanup_delay=cleanup_delay)
         return 0
     elif args.remove:
-        remove_header_from_py_files(src_dir, args.dry_run)
+        if target_mode == "file":
+            remove_header_from_single_file(target_file, args.dry_run)
+        else:
+            remove_header_from_py_files(src_dir, args.dry_run)
         return 0
     elif args.verify:
-        verify_spdx_headers(src_dir)
+        if target_mode == "file":
+            verify_spdx_header_in_single_file(target_file)
+        else:
+            verify_spdx_headers(src_dir)
         return 0
     elif args.check:
-        exit_code = check_headers(src_dir)
-        if exit_code != 0 and args.fix:
-            success = auto_fix_headers(src_dir, license_data, year, name, email, args.dry_run)
-            if success:
-                exit_code = check_headers(src_dir)
+        if target_mode == "file":
+            # For single file checking, we check if header is present
+            if has_spdx_header(target_file):
+                print(f"\u2713 Valid SPDX header found in: {target_file}")
+                exit_code = 0
+            else:
+                print(f"\u2717 Missing SPDX header in: {target_file}")
+                exit_code = 1
+
+            if exit_code != 0 and args.fix:
+                # Use MIT as default license for --check --fix
+                license_to_use = "MIT"
+                add_header_to_single_file(
+                    target_file, license_to_use, license_data, year, name, email, args.dry_run
+                )
+                if not args.dry_run:
+                    # Re-check after fixing
+                    if has_spdx_header(target_file):
+                        print(f"\u2713 Fixed: Added SPDX header to: {target_file}")
+                        exit_code = 0
+        else:
+            exit_code = check_headers(src_dir)
+            if exit_code != 0 and args.fix:
+                success = auto_fix_headers(src_dir, license_data, year, name, email, args.dry_run)
+                if success:
+                    exit_code = check_headers(src_dir)
         return exit_code
     elif extract_arg is not None:
         if extract_arg == "":
