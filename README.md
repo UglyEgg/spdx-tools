@@ -1,8 +1,9 @@
 # SPDX Headers
 
 [![PyPI version](https://img.shields.io/pypi/v/spdx-headers?color=blue)](https://pypi.org/project/spdx-headers/)
+[![Downloads](https://static.pepy.tech/badge/spdx-headers/month)](https://pepy.tech/project/spdx-headers)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
-[![License Compliance](https://github.com/UglyEgg/spdx-tools/actions/workflows/license-check.yml/badge.svg)](https://github.com/UglyEgg/spdx-tools/actions/workflows/license-check.yml)[![Downloads](https://static.pepy.tech/badge/spdx-headers/month)](https://pepy.tech/project/spdx-headers)
+[![License Compliance](https://github.com/UglyEgg/spdx-tools/actions/workflows/license-check.yml/badge.svg)](https://github.com/UglyEgg/spdx-tools/actions/workflows/license-check.yml)
 
 `spdx-headers` is a command-line tool for auditing and maintaining SPDX license headers in Python projects. It can add, verify, and update SPDX headers, extract license texts, and integrates seamlessly with `pre-commit`.
 

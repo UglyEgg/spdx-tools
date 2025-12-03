@@ -291,6 +291,114 @@ def add_header_to_single_file(
             print(f"❌ Error processing {filepath}: {e}")
 
 
+def change_header_in_single_file(
+    filepath: PathLike,
+    license_key: str,
+    license_data: LicenseData,
+    year: str,
+    name: str,
+    email: str,
+    dry_run: bool = False,
+) -> None:
+    """Change SPDX header in a single Python file.
+
+    Args:
+        filepath: Path to the Python file
+        license_key: SPDX license identifier
+        license_data: License database
+        year: Copyright year
+        name: Copyright holder name
+        email: Copyright holder email
+        dry_run: If True, show what would be done without making changes
+    """
+    # Validate license exists
+    if license_key not in license_data["licenses"]:
+        print(f"Error: License keyword '{license_key}' is not supported.")
+        return
+
+    # Check if file has header to change
+    if not has_spdx_header(filepath):
+        if dry_run:
+            print(f"Would skip (no header to change): {filepath}")
+        else:
+            print(f"u2139ufe0f File has no SPDX header to change: {filepath}")
+        return
+
+    header_to_add = create_header(license_data, license_key, year, name, email)
+    if header_to_add is None:
+        print(f"Error: No header template available for '{license_key}'.")
+        return
+
+    if dry_run:
+        print(f"Would change header in: {filepath}")
+    else:
+        try:
+            # Single-pass processing with atomic write
+            processor = FileProcessor(filepath)
+            processor.load()
+
+            if processor.has_header():
+                processor.add_header(header_to_add)
+                processor.save()
+                print(f"u2713 Changed header in: {filepath}")
+            else:
+                print(f"u2139ufe0f File has no SPDX header to change: {filepath}")
+
+        except Exception as e:
+            print(f"u274c Error processing {filepath}: {e}")
+
+
+def remove_header_from_single_file(
+    filepath: PathLike,
+    dry_run: bool = False,
+) -> None:
+    """Remove SPDX header from a single Python file.
+
+    Args:
+        filepath: Path to the Python file
+        dry_run: If True, show what would be done without making changes
+    """
+    # Check if file has header to remove
+    if not has_spdx_header(filepath):
+        if dry_run:
+            print(f"Would skip (no header to remove): {filepath}")
+        else:
+            print(f"u2139ufe0f File has no SPDX header to remove: {filepath}")
+        return
+
+    if dry_run:
+        print(f"Would remove header from: {filepath}")
+    else:
+        try:
+            # Single-pass processing with atomic write
+            processor = FileProcessor(filepath)
+            processor.load()
+
+            if processor.has_header():
+                processor.remove_header()
+                processor.save()
+                print(f"u2713 Removed header from: {filepath}")
+            else:
+                print(f"u2139ufe0f File has no SPDX header to remove: {filepath}")
+
+        except Exception as e:
+            print(f"u274c Error processing {filepath}: {e}")
+
+
+def verify_spdx_header_in_single_file(
+    filepath: PathLike,
+) -> None:
+    """Verify SPDX header in a single Python file.
+
+    Args:
+        filepath: Path to the Python file
+    """
+    if has_spdx_header(filepath):
+        print(f"u2713 Valid SPDX header found in: {filepath}")
+    else:
+        print(f"u2717 Missing SPDX header in: {filepath}")
+
+
 def verify_spdx_headers(directory: PathLike) -> None:
     """Verify SPDX headers in all Python files."""
     missing_files = check_missing_headers(directory)
